@@ -1,0 +1,4 @@
+//DELETE http://localhost:4041/api/category/6176dd1313474604f9219aee HTTP/1.1
+GET http://localhost:4041/api/users/list HTTP/1.1
+//GET http://localhost:4041/api/category/61746037040beda2c56a913b HTTP/1.1
+//GET http://localhost:4041/api/users/list HTTP/1.1

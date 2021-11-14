@@ -1,0 +1,26 @@
+const express = require('express');
+const router = express.Router();
+
+const {validate} = require('express-validation')
+const usersValidation = require('../../validations/users.validation');
+const orderController = require("../../controllers/order.controller");
+
+
+// create new user
+router.post('/',orderController.create);
+
+// update order status
+router.put('/:id',orderController.update);
+
+//  get all orders data
+router.get('/list',orderController.list);
+
+// get a single user order info
+router.get('/myorder/:userid',orderController.viewuserorder);
+
+//get total order count
+router.get('/count',orderController.count);
+
+// delete
+// router.delete('/:id',orderController.remove);
+module.exports = router;
