@@ -1,52 +1,53 @@
-const mongoose =require('mongoose');
-const Schema = mongoose.Schema;
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
 
-const usersSchema = new Schema({
+const usersSchema = new Schema(
+  {
     firstName: {
-        type: String,
+      type: String,
     },
     lastName: {
-        type: String,
+      type: String,
     },
     email: {
-        type: String,
+      type: String,
     },
     phoneNumber: {
-        type: String,
+      type: Number,
     },
     houseNumber: {
-        type: String,
+      type: String,
     },
     streetName: {
-        type: String,
+      type: String,
     },
     city: {
-        type: String,
+      type: String,
     },
-    passwordHash: {
-        type: String,
+    password: {
+      type: String,
     },
     status: {
-        type: String,
-        default:'active'
+      type: String,
+      default: 'active',
     },
     isAdmin: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
     role: {
-        type: String,
-        default:"employee",
-        enum:["admin","employee"]
+      type: String,
+      default: 'employee',
+      enum: ['admin', 'employee'],
     },
-},
-    {timestamps: true}
-);
-usersSchema.virtual('id').get(function(){
-    return this._id.toHexString();
-});
-usersSchema.set('toJSON',{
-    virtual: true,
-});
+  },
+  { timestamps: true },
+)
+usersSchema.virtual('id').get(function () {
+  return this._id.toHexString()
+})
+usersSchema.set('toJSON', {
+  virtual: true,
+})
 
-module.exports = mongoose.model("users", usersSchema)
+module.exports = mongoose.model('users', usersSchema)
