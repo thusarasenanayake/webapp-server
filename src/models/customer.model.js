@@ -1,44 +1,38 @@
-const mongoose =require('mongoose');
-const Schema = mongoose.Schema;
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
 
-const customerSchema = new Schema({
-    name: {
-        type: String,
+const customerSchema = new Schema(
+  {
+    firstName: {
+      type: String,
+    },
+    lastName: {
+      type: String,
     },
     email: {
-        type: String,
+      type: String,
     },
-    passwordHash: {
-        type: String,
+    password: {
+      type: String,
     },
-    houseNo: {
-        type: Number,
+    address: {
+      type: String,
     },
-    streetName: {
-        type: String,
+    phoneNumber: {
+      type: Number,
     },
-    city: {
-        type: String,
+    status: {
+      type: String,
+      default: 'Active',
     },
-    phoneNo: {
-        type: Number,
-    },
-    isAdmin: {
-        type: Boolean,
-        default: false
-    },
-    status:{
-        type: String,
-        default: "Active"
-    }
-},
-    {timestamps: true}
-);
-customerSchema.virtual('id').get(function(){
-    return this._id.toHexString();
-});
-customerSchema.set('toJSON',{
-    virtual: true,
-});
+  },
+  { timestamps: true },
+)
+customerSchema.virtual('id').get(function () {
+  return this._id.toHexString()
+})
+customerSchema.set('toJSON', {
+  virtual: true,
+})
 
-module.exports = mongoose.model("customer", customerSchema)
+module.exports = mongoose.model('customer', customerSchema)

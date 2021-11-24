@@ -24,6 +24,9 @@ const usersSchema = new Schema(
     city: {
       type: String,
     },
+    address: {
+      type: String,
+    },
     password: {
       type: String,
     },

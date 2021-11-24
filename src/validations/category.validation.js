@@ -1,12 +1,11 @@
-const Joi = require('joi');
+const Joi = require('joi')
 
 module.exports = {
-    create: {
-        body: Joi.object({
-            _id: Joi.forbidden(),
-            name: Joi.string().required(),
-            icon: Joi.string(),
-            image: Joi.string()
-        })
-    }
+  create: {
+    body: Joi.object({
+      _id: Joi.forbidden(),
+      categoryName: Joi.string().required(),
+      image: Joi.string(),
+    }),
+  },
 }

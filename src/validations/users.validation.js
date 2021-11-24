@@ -8,9 +8,7 @@ module.exports = {
       lastName: Joi.string().required(),
       email: Joi.string().required(),
       password: Joi.string().required(),
-      streetName: Joi.string().required(),
-      houseNumber: Joi.string().required(),
-      city: Joi.string().required(),
+      address: Joi.string().required(),
       phoneNumber: Joi.number().required(),
       isAdmin: Joi.boolean().required(),
       role: Joi.string()

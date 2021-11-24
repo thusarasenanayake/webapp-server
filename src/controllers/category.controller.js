@@ -41,8 +41,7 @@ exports.update = async (req, res, next) => {
     const category = await Category.findByIdAndUpdate(
       req.params.id,
       {
-        name: req.body.name,
-        icon: req.body.icon,
+        categoryName: req.body.categoryName,
         image: req.body.image,
       },
       { new: true },
