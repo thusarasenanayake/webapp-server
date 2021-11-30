@@ -18,7 +18,6 @@ exports.create = async (req, res, next) => {
         email: req.body.email,
         password: bcrypt.hashSync(req.body.password, 10),
         address: req.body.address,
-        homeTown: req.body.homeTown,
         phoneNumber: req.body.phoneNumber,
       })
       await customer.save()
@@ -30,25 +29,26 @@ exports.create = async (req, res, next) => {
 }
 
 exports.update = async (req, res, next) => {
-  console.log(req.body)
   try {
-    const customer = await Customer.findOne({ email: req.body.email })
-    if (!customer) {
-      return res
-        .status(httpStatus.UNPROCESSABLE_ENTITY)
-        .send('Email  Already exists!!')
+    const cusEmailID = await Customer.findOne({ email: req.body.email })
+    console.log(cusEmailID)
+    if (cusEmailID) {
+      const customer = await Customer.findByIdAndUpdate(
+        req.params.id,
+        {
+          firstName: req.body.firstName,
+          lastName: req.body.lastName,
+          phoneNumber: req.body.phoneNumber,
+          address: req.body.address,
+        },
+        { new: true },
+      )
+      if (!customer) {
+        return res.status(httpStatus.NOT_FOUND).send('User not found!!')
+      }
+      return res.status(httpStatus.OK).json({ customer, success: true })
     } else {
-      const customer = new Customer({
-        name: req.body.name,
-        email: req.body.email,
-        passwordHash: bcrypt.hashSync(req.body.passwordHash, 10),
-        HouseNumber: req.body.houseNumber,
-        street: req.body.street,
-        city: req.body.city,
-        phoneNo: req.body.phoneNo,
-      })
-      await customer.save()
-      return res.status(httpStatus.CREATED).json({ customer })
+      return res.status(httpStatus.UNPROCESSABLE_ENTITY).send('Can not Process')
     }
   } catch (error) {
     next(error)
@@ -72,6 +72,8 @@ exports.view = async (req, res, next) => {
 exports.login = async (req, res, next) => {
   try {
     const customer = await Customer.findOne({ email: req.body.email })
+      .where('status')
+      .equals('active')
     const secret = process.env.secret
     if (!customer) {
       return res.status(httpStatus.NOT_FOUND).send('User not found!!')
@@ -101,9 +103,10 @@ exports.login = async (req, res, next) => {
 exports.list = async (req, res, next) => {
   const filter = {}
   try {
-    const query = Customer.find(filter).select(
-      '-passwordHash -__v -createdAt -updatedAt',
-    )
+    const query = Customer.find(filter)
+      .where('status')
+      .equals('active')
+      .select('-passwordHash -__v -createdAt -updatedAt')
     const customers = await query.exec()
     return res.status(httpStatus.OK).json({ customers })
   } catch (error) {
@@ -111,6 +114,23 @@ exports.list = async (req, res, next) => {
   }
 }
 
+exports.delete = async (req, res, next) => {
+  try {
+    const customer = await Customer.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: 'deleted',
+      },
+      { new: true },
+    )
+    if (!customer) {
+      return res.status(httpStatus.NOT_FOUND).send('User not found!!')
+    }
+    return res.status(httpStatus.OK).json({ customer })
+  } catch (error) {
+    next(error)
+  }
+}
 exports.remove = async (req, res, next) => {
   try {
     const { id } = req.params
