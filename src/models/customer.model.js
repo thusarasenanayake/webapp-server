@@ -23,7 +23,7 @@ const customerSchema = new Schema(
     },
     status: {
       type: String,
-      default: 'Active',
+      default: 'active',
     },
   },
   { timestamps: true },

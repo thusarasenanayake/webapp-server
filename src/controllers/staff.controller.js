@@ -21,11 +21,11 @@ exports.create = async (req, res, next) => {
         phoneNumber: req.body.phoneNumber,
         address: req.body.address,
         isAdmin: req.body.isAdmin,
-        role: req.body.role,
+        //role: req.body.role,
       })
       console.log(user, 'user')
       await user.save()
-      return res.status(httpStatus.CREATED).json({ user })
+      return res.status(httpStatus.CREATED).json({ user, success: true })
     }
   } catch (error) {
     next(error)
@@ -33,49 +33,23 @@ exports.create = async (req, res, next) => {
 }
 exports.update = async (req, res, next) => {
   try {
-    const userEmailID = await Staff.findOne({ email: req.body.email })
-    //can update data with new email
-    if (userEmailID === null) {
-      const user = await Staff.findByIdAndUpdate(
-        req.params.id,
-        {
-          firstName: req.body.firstName,
-          lastName: req.body.lastName,
-          email: req.body.email,
-          phoneNumber: req.body.phoneNumber,
-          houseNumber: req.body.houseNumber,
-          streetName: req.body.streetName,
-          city: req.body.city,
-        },
-        { new: true },
-      )
-      if (!user) {
-        return res.status(httpStatus.NOT_FOUND).send('User not found!!')
-      }
-      return res.status(httpStatus.OK).json({ user })
-      //checking new email is already exist or not
-    } else if (userEmailID.id != req.params.id) {
-      return res
-        .status(httpStatus.UNPROCESSABLE_ENTITY)
-        .send('Email is already exits')
-    } else {
-      //update data with same email
-      const user = await Staff.findByIdAndUpdate(
-        req.params.id,
-        {
-          firstName: req.body.firstName,
-          lastName: req.body.lastName,
-          email: req.body.email,
-          phoneNumber: req.body.phoneNumber,
-          address: req.body.address,
-        },
-        { new: true },
-      )
-      if (!user) {
-        return res.status(httpStatus.NOT_FOUND).send('User not found!!')
-      }
-      return res.status(httpStatus.OK).json({ user })
+    console.log(req.body, 'body')
+    const user = await Staff.findByIdAndUpdate(
+      req.params.id,
+      {
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        //email: req.body.email,
+        phoneNumber: req.body.phoneNumber,
+        address: req.body.address,
+      },
+      { new: true },
+    )
+    if (!user) {
+      return res.status(httpStatus.NOT_FOUND).send('User not found!!')
     }
+    return res.status(httpStatus.OK).json({ user, success: true })
+    //}
   } catch (error) {
     next(error)
   }
@@ -103,7 +77,10 @@ exports.view = async (req, res, next) => {
   try {
     const { id } = req.params
     console.log('Requested user id', id)
-    const user = await Staff.findById(id).select('-__v')
+    const user = await Staff.findById(id)
+      .where('status')
+      .equals('active')
+      .select('-__v')
     if (!user) {
       throw Error('User not found!!')
     }
@@ -116,6 +93,8 @@ exports.view = async (req, res, next) => {
 exports.login = async (req, res, next) => {
   try {
     const user = await Staff.findOne({ email: req.body.email })
+      .where('status')
+      .equals('active')
     const secret = process.env.secret
     if (!user) {
       return res.status(httpStatus.NOT_FOUND).send('User not found!!')
