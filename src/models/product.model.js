@@ -1,54 +1,57 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
 
-const productsSchema = new Schema({
+const productsSchema = new Schema(
+  {
     name: {
-        type: String,
+      type: String,
     },
     description: {
-        type: String,
+      type: String,
     },
     richDescription: {
-        type: String,
+      type: String,
     },
     image: {
-        type: String,
+      type: String,
     },
-    images: {
+    images: [
+      {
         type: String,
-    },
+      },
+    ],
     price: {
-        type: Number,
-        default: 0
+      type: Number,
+      default: 0,
     },
     category: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'categories',
-        required: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'categories',
+      required: true,
     },
     countInstock: {
-        type: Number,
-        min:0,
-        max: 255
+      type: Number,
+      min: 0,
+      max: 255,
     },
-    Instock:{
-        type: Boolean
+    Instock: {
+      type: Boolean,
     },
     rating: {
-        type: Number,
+      type: Number,
     },
     dateCreated: {
-        type: Date,
+      type: Date,
     },
-},
-    {timestamps: true}
-);
+  },
+  { timestamps: true },
+)
 
-productsSchema.virtual('id').get(function(){
-    return this._id.toHexString();
-});
-productsSchema.set('toJSON',{
-    virtual: true,
-});
+productsSchema.virtual('id').get(function () {
+  return this._id.toHexString()
+})
+productsSchema.set('toJSON', {
+  virtual: true,
+})
 
-module.exports = mongoose.model("products", productsSchema);
+module.exports = mongoose.model('products', productsSchema)
