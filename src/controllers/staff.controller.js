@@ -23,7 +23,6 @@ exports.create = async (req, res, next) => {
         isAdmin: req.body.isAdmin,
         //role: req.body.role,
       })
-      console.log(user, 'user')
       await user.save()
       return res.status(httpStatus.CREATED).json({ user, success: true })
     }
@@ -110,7 +109,7 @@ exports.login = async (req, res, next) => {
       )
       return res
         .status(httpStatus.OK)
-        .send({ user: user.firstName, token: token })
+        .send({ user: user, token: token })
     } else {
       return res.status(httpStatus.NOT_FOUND).send('Password is wrong!')
     }

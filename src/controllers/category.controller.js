@@ -1,17 +1,12 @@
 const Category = require('../models/category.model')
 const httpStatus = require('http-status')
-const { query } = require('express')
 
 exports.create = async (req, res, next) => {
-  const fileName = req.file.filename
-  const protocol = req.protocol
-  const host = req.get('host')
-  //const basePath= '${req.protocol}://${req.get('host')}/public/uploads/'
-  const basePath = protocol + '://' + host + '/public/uploads/'
+  console.log(req.body, 'hello')
   try {
     const category = new Category({
       categoryName: req.body.categoryName,
-      image: basePath + fileName,
+      image: req.body.image,
     })
     await category.save()
     return res.status(httpStatus.CREATED).json({ category })
@@ -45,24 +40,12 @@ exports.list = async (req, res, next) => {
 
 exports.update = async (req, res, next) => {
   const category = await Category.findById(req.params.id)
-  const file = req.file
-  const protocol = req.protocol
-  const host = req.get('host')
-  const basePath = protocol + '://' + host + '/public/uploads/'
-  let imagePath
-
-  if (file) {
-    fileName = req.file.filename
-    imagePath = basePath + fileName
-  } else {
-    imagePath = category.image
-  }
   try {
     const updatedCategory = await Category.findByIdAndUpdate(
       req.params.id,
       {
         categoryName: req.body.categoryName,
-        image: imagePath,
+        image: req.body.image,
       },
       { new: true },
     )

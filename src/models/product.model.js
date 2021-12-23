@@ -3,13 +3,10 @@ const Schema = mongoose.Schema
 
 const productsSchema = new Schema(
   {
-    name: {
+    productName: {
       type: String,
     },
     description: {
-      type: String,
-    },
-    richDescription: {
       type: String,
     },
     image: {
@@ -24,7 +21,7 @@ const productsSchema = new Schema(
       type: Number,
       default: 0,
     },
-    category: {
+    category_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'categories',
       required: true,
