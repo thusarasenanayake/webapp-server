@@ -41,6 +41,7 @@ exports.update = async (req, res, next) => {
         //email: req.body.email,
         phoneNumber: req.body.phoneNumber,
         address: req.body.address,
+        isAdmin:req.body.isAdmin
       },
       { new: true },
     )

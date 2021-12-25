@@ -31,11 +31,12 @@ const productsSchema = new Schema(
       min: 0,
       max: 255,
     },
-    Instock: {
-      type: Boolean,
-    },
     rating: {
       type: Number,
+    },
+    status: {
+      type: String,
+      default: 'active',
     },
     dateCreated: {
       type: Date,

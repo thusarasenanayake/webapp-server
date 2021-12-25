@@ -18,7 +18,10 @@ exports.create = async (req, res, next) => {
 exports.view = async (req, res, next) => {
   try {
     const { id } = req.params
-    const category = await Category.findById(id).select('-__v')
+    const category = await Category.findById(id)
+      .where('status')
+      .equals('active')
+      .select('-__v')
     if (!category) {
       throw Error('Category not found!!')
     }
@@ -30,7 +33,10 @@ exports.view = async (req, res, next) => {
 
 exports.list = async (req, res, next) => {
   try {
-    const query = Category.find({}).select('-__v')
+    const query = Category.find({})
+      .where('status')
+      .equals('active')
+      .select('-__v')
     const categories = await query.exec()
     return res.status(httpStatus.OK).json({ categories })
   } catch (error) {
@@ -57,7 +63,22 @@ exports.update = async (req, res, next) => {
     next(error)
   }
 }
-
+exports.delete = async (req, res, next) => {
+  const category = await Category.findById(req.params.id)
+  try {
+    const updatedCategory = await Category.findByIdAndUpdate(
+      req.params.id,
+      { status: 'deleted' },
+      { new: true },
+    )
+    if (!updatedCategory) {
+      throw Error('Category not found!!')
+    }
+    return res.status(httpStatus.OK).json({ updatedCategory })
+  } catch (error) {
+    next(error)
+  }
+}
 exports.remove = async (req, res, next) => {
   try {
     const { id } = req.params

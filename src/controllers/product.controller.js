@@ -79,6 +79,8 @@ exports.list = async (req, res, next) => {
       filter = { category: req.query.categories.split(',') }
     }
     const query = Product.find(filter)
+      .where('status')
+      .equals('active')
       .select('-__v')
       .populate({ path: 'category_id', model: Category })
     const products = await query.exec()
@@ -89,14 +91,16 @@ exports.list = async (req, res, next) => {
 }
 
 //update countStocks, instock status and price
-exports.updateCIP = async (req, res, next) => {
+exports.update = async (req, res, next) => {
   try {
     const product = await Product.findByIdAndUpdate(
       req.params.id,
       {
         countInstock: req.body.countInstock,
-        Instock: req.body.instock,
         price: req.body.price,
+        image: req.body.image,
+        description: req.body.description,
+        productName: req.body.productName,
       },
       { new: true },
     )
@@ -108,7 +112,24 @@ exports.updateCIP = async (req, res, next) => {
     next(error)
   }
 }
-
+exports.delete = async (req, res, next) => {
+  console.log(req.params.id, 'hi')
+  try {
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: 'deleted',
+      },
+      { new: true },
+    )
+    if (!product) {
+      return res.status(httpStatus.NOT_FOUND).send('Product not found!!')
+    }
+    return res.status(httpStatus.OK).json({ product })
+  } catch (error) {
+    next(error)
+  }
+}
 exports.remove = async (req, res, next) => {
   try {
     const { id } = req.params

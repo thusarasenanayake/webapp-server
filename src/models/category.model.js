@@ -9,6 +9,7 @@ const categoriesSchema = new Schema(
     image: {
       type: String,
     },
+    status: { type: String, default: 'active' },
   },
   { timestamps: true },
 )

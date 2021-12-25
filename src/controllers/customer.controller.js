@@ -59,7 +59,10 @@ exports.view = async (req, res, next) => {
   try {
     const { id } = req.params
     console.log('Requested user id', id)
-    const customer = await Customer.findById(id).select('-__v')
+    const customer = await Customer.findById(id)
+      .where('status')
+      .equals('active')
+      .select('-__v')
     if (!customer) {
       throw Error('User not found!!')
     }

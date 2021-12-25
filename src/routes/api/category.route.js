@@ -15,4 +15,5 @@ router.get('/:id', categoryController.view)
 router.put('/:id', categoryController.update)
 //category delete
 router.delete('/:id', categoryController.remove)
+router.put('/delete/:id', categoryController.delete)
 module.exports = router
