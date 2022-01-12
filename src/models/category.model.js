@@ -6,10 +6,14 @@ const categoriesSchema = new Schema(
     categoryName: {
       type: String,
     },
+    status: {
+      type: String,
+      default: 'active',
+    },
     image: {
       type: String,
     },
-    status: { type: String, default: 'active' },
+    // displayPrice: { type: 'long' },
   },
   { timestamps: true },
 )

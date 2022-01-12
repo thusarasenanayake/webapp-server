@@ -41,7 +41,7 @@ exports.update = async (req, res, next) => {
         //email: req.body.email,
         phoneNumber: req.body.phoneNumber,
         address: req.body.address,
-        isAdmin:req.body.isAdmin
+        isAdmin: req.body.isAdmin,
       },
       { new: true },
     )
@@ -102,15 +102,13 @@ exports.login = async (req, res, next) => {
     if (user && bcrypt.compareSync(req.body.password, user.password)) {
       const token = jwt.sign(
         {
-          userID: user.id,
+          userID: user._id,
           isAdmin: user.isAdmin,
         },
         secret,
         { expiresIn: '1d' },
       )
-      return res
-        .status(httpStatus.OK)
-        .send({ user: user, token: token })
+      return res.status(httpStatus.OK).send({ user: user, token: token })
     } else {
       return res.status(httpStatus.NOT_FOUND).send('Password is wrong!')
     }

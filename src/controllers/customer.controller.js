@@ -1,4 +1,5 @@
 const Customer = require('../models/customer.model')
+const Cart = require('../models/cart.model')
 const httpStatus = require('http-status')
 const { query } = require('express')
 const bcrypt = require('bcryptjs')
@@ -20,8 +21,16 @@ exports.create = async (req, res, next) => {
         address: req.body.address,
         phoneNumber: req.body.phoneNumber,
       })
+
       await customer.save()
-      return res.status(httpStatus.CREATED).json({ customer })
+      const newCustomer = await Customer.findOne({ email: req.body.email })
+      const cart = new Cart({
+        customerID: newCustomer._id,
+        customerEmail: newCustomer.email,
+      })
+      await cart.save()
+
+      return res.status(httpStatus.CREATED).json({ customer, cart })
     }
   } catch (error) {
     next(error)
@@ -79,22 +88,19 @@ exports.login = async (req, res, next) => {
       .equals('active')
     const secret = process.env.secret
     if (!customer) {
-      return res.status(httpStatus.NOT_FOUND).send('User not found!!')
+      return res.status(httpStatus.NOT_FOUND).send('customer not found!!')
     }
-    if (
-      customer &&
-      bcrypt.compareSync(req.body.passwordHash, customer.passwordHash)
-    ) {
+    if (customer && bcrypt.compareSync(req.body.password, customer.password)) {
       const token = jwt.sign(
         {
-          customerID: customer.id,
+          customerID: customer._id,
         },
         secret,
         { expiresIn: '1d' },
       )
       return res
         .status(httpStatus.OK)
-        .send({ customer: customer.name, token: token })
+        .send({ customer: customer, token: token })
     } else {
       return res.status(httpStatus.NOT_FOUND).send('Password is wrong!')
     }

@@ -5,7 +5,7 @@ function authjwt() {
   return expressjwt({
     secret,
     algorithms: ['HS256'],
-    isRevoked: isRevoked, //expressjwt method for check user's role
+    // isRevoked: isRevoked, //expressjwt method for check user's role
   }).unless({
     //non token urls
     path: [
@@ -13,8 +13,10 @@ function authjwt() {
       { url: /\/api\/product(.*)/, methods: ['GET', 'OPTIONS'] }, //regx url for multiurl
       { url: /\/api\/category(.*)/, methods: ['GET', 'OPTIONS'] }, //regx url for multiurl
       '/api/staff/login',
+      '/api/customer/login',
       '/api/staff',
-      // { url: /(.*)/ }, //all urls
+      '/api/customer',
+      { url: /(.*)/ }, //all urls
     ],
   })
 }
