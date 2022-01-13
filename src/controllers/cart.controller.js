@@ -83,18 +83,30 @@ exports.delete = async (req, res, next) => {
       .equals('active')
     let prevCartItem = cartDetails.cartItem
     console.log(cartDetails)
-    // const cartID = cartDetails._id
-    // var cartItem = []
-    // async function checkCart() {
-    //   await prevCartItem.map((item, index) => {
-    //     if (item.item.toString() === req.body.productID) {
-    //       console.log(item._id)
-    //       const removedItem = Cart.findByIdAndRemove(item._id)
-    //     }
-    //   })
-    //   return res.status(httpStatus.OK).json({ removedItem })
-    // }
-    // checkCart()
+    const cartID = cartDetails._id
+    var cartItem = []
+    async function checkCart() {
+      await prevCartItem.map((item, index) => {
+        if (item.item.toString() === req.body.productID) {
+          console.log('delete')
+        } else {
+          console.log('no')
+          cartItem.push({ item: item.item._id, quantity: item.quantity })
+        }
+      })
+      const updatedCart = await Cart.findByIdAndUpdate(
+        cartID,
+        {
+          cartItem: cartItem,
+        },
+        { new: true },
+      )
+      if (!updatedCart) {
+        return res.status(httpStatus.NOT_FOUND).send('updatedCart not found!!')
+      }
+      return res.status(httpStatus.OK).json({ updatedCart })
+    }
+    checkCart()
   } catch (error) {
     next(error)
   }
