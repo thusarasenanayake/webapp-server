@@ -6,13 +6,13 @@ const usersValidation = require('../../validations/users.validation')
 const cartController = require('../../controllers/cart.controller')
 
 // create new user
-//router.post('/', cartController.create)
+router.get('/clear/:id', cartController.clear)
 
 // update order status
-router.post('/', cartController.update)
+router.post('/:id', cartController.update)
 
 // //  get all orders data
-router.post('/list', cartController.list)
+router.get('/list/:id', cartController.list)
 
 // // get a single user order info
 // router.get('/myorder/:userid', cartController.viewuserorder)
@@ -21,5 +21,5 @@ router.post('/list', cartController.list)
 // router.get('/count', cartController.count)
 
 // // delete
-// router.delete('/', cartController.delete)
+router.post('/delete/:id', cartController.delete)
 module.exports = router

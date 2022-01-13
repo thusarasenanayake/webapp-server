@@ -3,25 +3,38 @@ const Cart = require('../models/cart.model')
 const Product = require('../models/product.model')
 
 exports.update = async (req, res, next) => {
-  console.log(req.body.authEmail)
-  console.log(req.body.newProduct)
-  let reqData = req.body.newProduct
   try {
-    const cartDetails = await Cart.findOne({ email: req.body.authEmail })
+    const customerID = req.params
+    let isMatched = false
+    const cartDetails = await Cart.findOne(customerID)
       .where('status')
       .equals('active')
     let prevCartItem = cartDetails.cartItem
 
-    const id = cartDetails._id
+    const cartID = cartDetails._id
     var cartItem = []
-    cartItem.push({ item: reqData.productID, quantity: reqData.quantity })
+    async function checkCart() {
+      await prevCartItem.map((item, index) => {
+        if (item.item.toString() === req.body.productID) {
+          isMatched = true
+        }
+      })
+    }
+    checkCart()
+    if (prevCartItem.length === 0) {
+      cartItem.push({ item: req.body.productID, quantity: req.body.quantity })
+    } else {
+      if (isMatched === false) {
+        cartItem.push({ item: req.body.productID, quantity: req.body.quantity })
+      } else {
+        return res.status(httpStatus.UNPROCESSABLE_ENTITY).send('Item Exist!')
+      }
+    }
     prevCartItem.map((item, index) =>
       cartItem.push({ item: item.item._id, quantity: item.quantity }),
     )
-
-    console.log(cartItem, 'hii')
     const updatedCart = await Cart.findByIdAndUpdate(
-      id,
+      cartID,
       {
         cartItem: cartItem,
       },
@@ -35,26 +48,79 @@ exports.update = async (req, res, next) => {
     next(error)
   }
 }
-exports.remove = async (req, res, next) => {
+exports.clear = async (req, res, next) => {
   try {
-    const { id } = req.body
-    const query = await Cart.findByIdAndRemove(id)
-    return res.status(httpStatus.OK).json({ query })
+    const customerID = req.params
+    let reqData = req.body.newProduct
+    const cartDetails = await Cart.findOne(customerID)
+      .where('status')
+      .equals('active')
+
+    const cartID = cartDetails._id
+    var cartItem = []
+    const updatedCart = await Cart.findByIdAndUpdate(
+      cartID,
+      {
+        cartItem: cartItem,
+      },
+      { new: true },
+    )
+    if (!updatedCart) {
+      return res.status(httpStatus.NOT_FOUND).send('updatedCart not found!!')
+    }
+    return res.status(httpStatus.OK).json({ updatedCart })
+  } catch (error) {
+    next(error)
+  }
+}
+exports.delete = async (req, res, next) => {
+  try {
+    const customerID = req.params
+    console.log(customerID, req.body)
+    let isMatched = false
+    const cartDetails = await Cart.findOne(customerID)
+      .where('status')
+      .equals('active')
+    let prevCartItem = cartDetails.cartItem
+    console.log(cartDetails)
+    // const cartID = cartDetails._id
+    // var cartItem = []
+    // async function checkCart() {
+    //   await prevCartItem.map((item, index) => {
+    //     if (item.item.toString() === req.body.productID) {
+    //       console.log(item._id)
+    //       const removedItem = Cart.findByIdAndRemove(item._id)
+    //     }
+    //   })
+    //   return res.status(httpStatus.OK).json({ removedItem })
+    // }
+    // checkCart()
   } catch (error) {
     next(error)
   }
 }
 exports.list = async (req, res, next) => {
+  console.log(req.params)
+  let cart = []
+  function myFunction(item, index) {
+    cart.push({
+      productID: item.item._id,
+      productName: item.item.productName,
+      quantity: item.quantity,
+    })
+  }
+
   try {
-    const email = req.body.authEmail
-    const cartList = await Cart.findOne({ email: email })
+    const id = req.params
+    const cartList = await Cart.findOne(id)
       .select('-__v')
       .populate({ path: 'cartItem.item', model: Product })
     if (!cartList) {
       throw Error('cartList not found!!')
     }
     const cartItem = cartList.cartItem
-    return res.status(httpStatus.OK).json({ cartItem })
+    cartItem.forEach(myFunction)
+    return res.status(httpStatus.OK).json({ cart })
   } catch (error) {
     next(error)
   }
