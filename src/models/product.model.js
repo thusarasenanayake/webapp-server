@@ -5,6 +5,7 @@ const productsSchema = new Schema(
   {
     productName: {
       type: String,
+      required: true,
     },
     description: {
       type: String,
@@ -26,17 +27,17 @@ const productsSchema = new Schema(
       ref: 'categories',
       required: true,
     },
-    countInstock: {
-      type: Number,
-      min: 0,
-      max: 255,
-    },
     rating: {
       type: Number,
     },
     status: {
       type: String,
       default: 'active',
+    },
+    isAvailable: {
+      type: Boolean,
+      default: true,
+      required: true,
     },
     dateCreated: {
       type: Date,

@@ -5,6 +5,7 @@ const categoriesSchema = new Schema(
   {
     categoryName: {
       type: String,
+      required: true,
     },
     status: {
       type: String,
@@ -13,7 +14,11 @@ const categoriesSchema = new Schema(
     image: {
       type: String,
     },
-    // displayPrice: { type: 'long' },
+    isAvailable: {
+      type: Boolean,
+      default: true,
+    },
+    displayPrice: { type: Number, required: true },
   },
   { timestamps: true },
 )

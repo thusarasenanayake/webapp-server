@@ -9,7 +9,6 @@ module.exports = {
       // images: Joi.string(),
       price: Joi.number().required(),
       category_id: Joi.string().required(),
-      countInstock: Joi.number(),
       // rating: Joi.number(),
       // dateCreated: Joi.string(),
     }),

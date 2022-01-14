@@ -6,6 +6,7 @@ module.exports = {
       _id: Joi.forbidden(),
       categoryName: Joi.string().required(),
       image: Joi.string(),
+      price: Joi.number(),
     }),
   },
 }

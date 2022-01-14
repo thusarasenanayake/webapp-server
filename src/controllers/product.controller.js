@@ -5,7 +5,8 @@ const httpStatus = require('http-status')
 exports.create = async (req, res, next) => {
   console.log(req.body)
   try {
-    const category = await Category.findById(req.body.category_id)
+    const categoryID = req.body.category_id
+    const category = await Category.findById(categoryID)
     if (!category) {
       console.log(category, req.body.productName)
       return res.status(httpStatus.BAD_REQUEST).json('Invalid Category')
@@ -16,7 +17,6 @@ exports.create = async (req, res, next) => {
         image: req.body.image,
         price: req.body.price,
         category_id: req.body.category_id,
-        countInstock: req.body.countInstock,
         // rating: req.body.rating,
         // dateCreated: req.body.dateCreated,
       })

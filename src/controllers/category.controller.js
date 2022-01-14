@@ -7,6 +7,7 @@ exports.create = async (req, res, next) => {
     const category = new Category({
       categoryName: req.body.categoryName,
       image: req.body.image,
+      displayPrice: req.body.price,
     })
     await category.save()
     return res.status(httpStatus.CREATED).json({ category })

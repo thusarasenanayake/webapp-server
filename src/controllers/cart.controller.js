@@ -87,10 +87,7 @@ exports.delete = async (req, res, next) => {
     var cartItem = []
     async function checkCart() {
       await prevCartItem.map((item, index) => {
-        if (item.item.toString() === req.body.productID) {
-          console.log('delete')
-        } else {
-          console.log('no')
+        if (item.item.toString() !== req.body.productID) {
           cartItem.push({ item: item.item._id, quantity: item.quantity })
         }
       })
@@ -114,12 +111,17 @@ exports.delete = async (req, res, next) => {
 exports.list = async (req, res, next) => {
   console.log(req.params)
   let cart = []
-  function myFunction(item, index) {
+  let Total = 0
+  function processCartList(item, index) {
     cart.push({
       productID: item.item._id,
       productName: item.item.productName,
       quantity: item.quantity,
+      price: item.item.price * item.quantity,
     })
+  }
+  function calculateTotalPrice(item, index) {
+    Total += item.price
   }
 
   try {
@@ -131,8 +133,9 @@ exports.list = async (req, res, next) => {
       throw Error('cartList not found!!')
     }
     const cartItem = cartList.cartItem
-    cartItem.forEach(myFunction)
-    return res.status(httpStatus.OK).json({ cart })
+    cartItem.forEach(processCartList)
+    cart.forEach(calculateTotalPrice)
+    return res.status(httpStatus.OK).json({ cart, Total })
   } catch (error) {
     next(error)
   }
