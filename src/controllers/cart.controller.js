@@ -6,44 +6,51 @@ exports.update = async (req, res, next) => {
   try {
     const customerID = req.params
     let isMatched = false
-    const cartDetails = await Cart.findOne(customerID)
-      .where('status')
-      .equals('active')
-    let prevCartItem = cartDetails.cartItem
+    if (customerID !== 'null') {
+      const cartDetails = await Cart.findOne(customerID)
+        .where('status')
+        .equals('active')
+      let prevCartItem = cartDetails.cartItem
 
-    const cartID = cartDetails._id
-    var cartItem = []
-    async function checkCart() {
-      await prevCartItem.map((item, index) => {
-        if (item.item.toString() === req.body.productID) {
-          isMatched = true
-        }
-      })
-    }
-    checkCart()
-    if (prevCartItem.length === 0) {
-      cartItem.push({ item: req.body.productID, quantity: req.body.quantity })
-    } else {
-      if (isMatched === false) {
+      const cartID = cartDetails._id
+      var cartItem = []
+      async function checkCart() {
+        await prevCartItem.map((item, index) => {
+          if (item.item.toString() === req.body.productID) {
+            isMatched = true
+          }
+        })
+      }
+      checkCart()
+      if (prevCartItem.length === 0) {
         cartItem.push({ item: req.body.productID, quantity: req.body.quantity })
       } else {
-        return res.status(httpStatus.UNPROCESSABLE_ENTITY).send('Item Exist!')
+        if (isMatched === false) {
+          cartItem.push({
+            item: req.body.productID,
+            quantity: req.body.quantity,
+          })
+        } else {
+          return res.status(httpStatus.UNPROCESSABLE_ENTITY).send('Item Exist!')
+        }
       }
+      prevCartItem.map((item, index) =>
+        cartItem.push({ item: item.item._id, quantity: item.quantity }),
+      )
+      const updatedCart = await Cart.findByIdAndUpdate(
+        cartID,
+        {
+          cartItem: cartItem,
+        },
+        { new: true },
+      )
+      if (!updatedCart) {
+        return res.status(httpStatus.NOT_FOUND).send('updatedCart not found!!')
+      }
+      return res.status(httpStatus.OK).json({ updatedCart })
+    } else {
+      return res.status(httpStatus.UNAUTHORIZED).send('User not found!!')
     }
-    prevCartItem.map((item, index) =>
-      cartItem.push({ item: item.item._id, quantity: item.quantity }),
-    )
-    const updatedCart = await Cart.findByIdAndUpdate(
-      cartID,
-      {
-        cartItem: cartItem,
-      },
-      { new: true },
-    )
-    if (!updatedCart) {
-      return res.status(httpStatus.NOT_FOUND).send('updatedCart not found!!')
-    }
-    return res.status(httpStatus.OK).json({ updatedCart })
   } catch (error) {
     next(error)
   }
