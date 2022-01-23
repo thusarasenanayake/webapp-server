@@ -8,18 +8,14 @@ const orderSchema = mongoose.Schema({
       required: true,
     },
   ],
-  shippingAddress1: {
+  shippingAddress: {
     type: String,
     required: true,
   },
-  shippingAddress2: {
-    type: String,
-    required: true,
-  },
-  city: {
-    type: String,
-    required: true,
-  },
+  // city: {
+  //   type: String,
+  //   required: true,
+  // },
   phoneNumber: {
     type: Number,
     required: true,
@@ -30,6 +26,12 @@ const orderSchema = mongoose.Schema({
   },
   totalPrice: {
     type: Number,
+  },
+  ReceiverName: {
+    type: String,
+  },
+  Landmark: {
+    type: String,
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,

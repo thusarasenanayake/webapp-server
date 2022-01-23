@@ -3,13 +3,14 @@ const Order = require('../models/order.model')
 const OrderItems = require('../models/order-Items.model')
 
 exports.create = async (req, res, next) => {
+  console.log(req.body.orderItems)
   try {
     //saving orderItems to orderItem collection
     const orderItemIDs = Promise.all(
       req.body.orderItems.map(async (orderItem) => {
         let newOrderItem = new OrderItems({
           quantity: orderItem.quantity,
-          product: orderItem.product,
+          product: orderItem.productID,
         })
         newOrderItem = await newOrderItem.save()
         return newOrderItem._id
@@ -31,11 +32,11 @@ exports.create = async (req, res, next) => {
     //saving orders
     let order = new Order({
       orderItem: orderItemIDsResolved,
-      shippingAddress1: req.body.shippingAddress1,
-      shippingAddress2: req.body.shippingAddress2,
-      city: req.body.city,
-      phoneNumber: req.body.phone,
-      user: req.body.user,
+      shippingAddress: req.body.data.shippingAddress,
+      // city: req.body.city,
+      phoneNumber: req.body.data.phoneNumber,
+      user: req.body.data.user,
+      landmark: req.body.data.landmark,
       totalPrice: totalPrices,
     })
     order = await order.save()
@@ -91,12 +92,13 @@ exports.viewuserorder = async (req, res, next) => {
   try {
     const userOrder = await Order.find({ user: req.params.userid })
       .select('-__v')
+      .populate('user', 'firstName')
       .populate({
         path: 'orderItem',
         populate: {
           path: 'product',
-          select: 'name',
-          populate: { path: 'category', select: 'name' },
+          select: 'productName',
+          populate: { path: 'category_id', select: 'categoryName' },
         },
       })
       .sort({ dateOrder: -1 })

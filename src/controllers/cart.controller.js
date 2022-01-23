@@ -4,10 +4,10 @@ const Product = require('../models/product.model')
 
 exports.update = async (req, res, next) => {
   try {
-    const customerID = req.params
+    const { id } = req.params
     let isMatched = false
-    if (customerID !== 'null') {
-      const cartDetails = await Cart.findOne(customerID)
+    if (id !== 'null') {
+      const cartDetails = await Cart.findOne({ customerID: id })
         .where('status')
         .equals('active')
       let prevCartItem = cartDetails.cartItem
@@ -57,9 +57,9 @@ exports.update = async (req, res, next) => {
 }
 exports.clear = async (req, res, next) => {
   try {
-    const customerID = req.params
+    const { id } = req.params
     let reqData = req.body.newProduct
-    const cartDetails = await Cart.findOne(customerID)
+    const cartDetails = await Cart.findOne({ customerID: id })
       .where('status')
       .equals('active')
 
@@ -82,10 +82,8 @@ exports.clear = async (req, res, next) => {
 }
 exports.delete = async (req, res, next) => {
   try {
-    const customerID = req.params
-    console.log(customerID, req.body)
-    let isMatched = false
-    const cartDetails = await Cart.findOne(customerID)
+    const { id } = req.params
+    const cartDetails = await Cart.findOne({ customerID: id })
       .where('status')
       .equals('active')
     let prevCartItem = cartDetails.cartItem
@@ -116,7 +114,6 @@ exports.delete = async (req, res, next) => {
   }
 }
 exports.list = async (req, res, next) => {
-  console.log(req.params)
   let cart = []
   let Total = 0
   function processCartList(item, index) {
@@ -130,10 +127,10 @@ exports.list = async (req, res, next) => {
   function calculateTotalPrice(item, index) {
     Total += item.price
   }
-
+  console.log(req.params)
   try {
-    const id = req.params
-    const cartList = await Cart.findOne(id)
+    const { id } = req.params
+    const cartList = await Cart.findOne({ customerID: id })
       .select('-__v')
       .populate({ path: 'cartItem.item', model: Product })
     if (!cartList) {

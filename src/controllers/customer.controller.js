@@ -25,7 +25,7 @@ exports.create = async (req, res, next) => {
       await customer.save()
       const newCustomer = await Customer.findOne({ email: req.body.email })
       const cart = new Cart({
-        customerID: newCustomer._id,
+        customerID: newCustomer.id,
         customerEmail: newCustomer.email,
       })
       await cart.save()
