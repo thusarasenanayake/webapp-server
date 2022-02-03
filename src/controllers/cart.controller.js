@@ -114,18 +114,24 @@ exports.delete = async (req, res, next) => {
   }
 }
 exports.list = async (req, res, next) => {
-  let cart = []
-  let Total = 0
+  let availableCartItem = []
+  let unavailableCartItem = []
   function processCartList(item, index) {
-    cart.push({
-      productID: item.item._id,
-      productName: item.item.productName,
-      quantity: item.quantity,
-      price: item.item.price * item.quantity,
-    })
-  }
-  function calculateTotalPrice(item, index) {
-    Total += item.price
+    if (item.quantity <= item.item.inStock) {
+      availableCartItem.push({
+        productID: item.item._id,
+        productName: item.item.productName,
+        quantity: item.quantity,
+        price: item.item.price,
+      })
+    } else {
+      unavailableCartItem.push({
+        productID: item.item._id,
+        productName: item.item.productName,
+        quantity: item.quantity,
+        price: item.item.price,
+      })
+    }
   }
   console.log(req.params)
   try {
@@ -133,13 +139,16 @@ exports.list = async (req, res, next) => {
     const cartList = await Cart.findOne({ customerID: id })
       .select('-__v')
       .populate({ path: 'cartItem.item', model: Product })
+
     if (!cartList) {
       throw Error('cartList not found!!')
     }
     const cartItem = cartList.cartItem
     cartItem.forEach(processCartList)
-    cart.forEach(calculateTotalPrice)
-    return res.status(httpStatus.OK).json({ cart, Total })
+
+    return res
+      .status(httpStatus.OK)
+      .json({ availableCartItem, unavailableCartItem })
   } catch (error) {
     next(error)
   }

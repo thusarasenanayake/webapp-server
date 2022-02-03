@@ -34,6 +34,10 @@ const productsSchema = new Schema(
       type: String,
       default: 'active',
     },
+    inStock: {
+      type: Number,
+      default: 0,
+    },
     isAvailable: {
       type: Boolean,
       default: true,
