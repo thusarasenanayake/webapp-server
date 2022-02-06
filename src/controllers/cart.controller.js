@@ -113,23 +113,70 @@ exports.delete = async (req, res, next) => {
     next(error)
   }
 }
+exports.updateQuantity = async (req, res, next) => {
+  console.log(req.body, 'qqqq')
+  try {
+    const { id } = req.params
+    const cartDetails = await Cart.findOne({ customerID: id })
+      .where('status')
+      .equals('active')
+    let prevCartItem = cartDetails.cartItem
+    console.log(cartDetails)
+    const cartID = cartDetails._id
+    var cartItem = []
+    async function checkCart() {
+      await prevCartItem.map((item, index) => {
+        if (item.item.toString() !== req.body.productData.productID) {
+          cartItem.push({ item: item.item._id, quantity: item.quantity })
+        } else if (item.item.toString() === req.body.productData.productID) {
+          cartItem.push({
+            item: item.item._id,
+            quantity: req.body.productData.quantity,
+          })
+        }
+      })
+      console.log(cartItem, 'hello')
+      const updatedCart = await Cart.findByIdAndUpdate(
+        cartID,
+        {
+          cartItem: cartItem,
+        },
+        { new: true },
+      )
+      if (!updatedCart) {
+        return res.status(httpStatus.NOT_FOUND).send('updatedCart not found!!')
+      }
+      return res.status(httpStatus.OK).json({ updatedCart })
+    }
+    checkCart()
+  } catch (error) {
+    next(error)
+  }
+}
 exports.list = async (req, res, next) => {
   let availableCartItem = []
   let unavailableCartItem = []
+  let availableTotalPrice = 0
+  let unAvailableTotalPrice = 0
   function processCartList(item, index) {
     if (item.quantity <= item.item.inStock) {
+      availableTotalPrice += item.item.price * item.quantity
       availableCartItem.push({
         productID: item.item._id,
         productName: item.item.productName,
         quantity: item.quantity,
         price: item.item.price,
+
+        inStock: item.item.inStock,
       })
     } else {
+      unAvailableTotalPrice += item.item.price * item.quantity
       unavailableCartItem.push({
         productID: item.item._id,
         productName: item.item.productName,
         quantity: item.quantity,
         price: item.item.price,
+        inStock: item.item.inStock,
       })
     }
   }
@@ -146,9 +193,12 @@ exports.list = async (req, res, next) => {
     const cartItem = cartList.cartItem
     cartItem.forEach(processCartList)
 
-    return res
-      .status(httpStatus.OK)
-      .json({ availableCartItem, unavailableCartItem })
+    return res.status(httpStatus.OK).json({
+      availableCartItem,
+      unavailableCartItem,
+      availableTotalPrice,
+      unAvailableTotalPrice,
+    })
   } catch (error) {
     next(error)
   }

@@ -22,4 +22,5 @@ router.get('/list/:id', cartController.list)
 
 // // delete
 router.post('/delete/:id', cartController.delete)
+router.post('/update/:id', cartController.updateQuantity)
 module.exports = router
