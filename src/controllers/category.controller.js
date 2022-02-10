@@ -2,12 +2,12 @@ const Category = require('../models/category.model')
 const httpStatus = require('http-status')
 
 exports.create = async (req, res, next) => {
-  console.log(req.body, 'hello')
+  console.log('category creating')
   try {
     const category = new Category({
       categoryName: req.body.categoryName,
       image: req.body.image,
-      displayPrice: req.body.price,
+      // displayPrice: req.body.price,
     })
     await category.save()
     return res.status(httpStatus.CREATED).json({ category })

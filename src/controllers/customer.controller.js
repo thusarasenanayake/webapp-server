@@ -82,6 +82,7 @@ exports.view = async (req, res, next) => {
 }
 
 exports.login = async (req, res, next) => {
+  console.log(req.body)
   try {
     const customer = await Customer.findOne({ email: req.body.email })
       .where('status')
@@ -98,6 +99,7 @@ exports.login = async (req, res, next) => {
         secret,
         { expiresIn: '1d' },
       )
+
       return res
         .status(httpStatus.OK)
         .send({ customer: customer, token: token })

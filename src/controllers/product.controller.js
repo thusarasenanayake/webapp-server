@@ -13,13 +13,15 @@ exports.create = async (req, res, next) => {
     } else {
       const productData = new Product({
         productName: req.body.productName,
-        description: req.body.description,
-        image: req.body.image,
+        //   description: req.body.description,
+        //   image: req.body.image,
         price: req.body.price,
         category_id: req.body.category_id,
+        inStock: req.body.inStock,
         // rating: req.body.rating,
         // dateCreated: req.body.dateCreated,
       })
+      console.log(productData)
       await productData.save()
       return res.status(httpStatus.CREATED).json({ productData })
     }
@@ -96,10 +98,9 @@ exports.update = async (req, res, next) => {
     const product = await Product.findByIdAndUpdate(
       req.params.id,
       {
-        countInstock: req.body.countInstock,
+        inStock: req.body.inStock,
+        category_id: req.body.category_id,
         price: req.body.price,
-        image: req.body.image,
-        description: req.body.description,
         productName: req.body.productName,
       },
       { new: true },

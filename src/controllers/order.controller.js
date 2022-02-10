@@ -5,7 +5,7 @@ const OrderItems = require('../models/order-Items.model')
 
 exports.create = async (req, res, next) => {
   const data = req.body.orderItems
-
+  console.log(data)
   try {
     for (let i = 0; i < data.length; i++) {
       const productStock = await Product.findById(data[i].productID)
@@ -14,6 +14,7 @@ exports.create = async (req, res, next) => {
         .populate('_id')
 
       if (productStock === null) {
+        console.log(productStock)
         return res
           .status(httpStatus.BAD_REQUEST)
           .send('This order cannot create')
@@ -77,15 +78,18 @@ exports.list = async (req, res, next) => {
   const filter = {}
   try {
     const orderList = await Order.find(filter)
-      .populate('user', 'name')
+      .populate('user', 'firstName')
       .populate({
         path: 'orderItem',
         populate: {
           path: 'product',
-          select: 'name',
-          populate: { path: 'category', select: 'name' },
+          select: 'productName',
+          populate: { path: 'category_id', select: 'categoryName' },
         },
       })
+      .where('isActive')
+      .equals('true')
+      .select('-__v')
       .sort({ dateOrder: -1 })
     if (!orderList)
       return res.status(httpStatus.NOT_FOUND).send('No data found')
@@ -96,7 +100,7 @@ exports.list = async (req, res, next) => {
 }
 
 exports.update = async (req, res, next) => {
-  console.log(req.body.status, req.params.id, 'aaa')
+  console.log(req.body, req.params.id, 'aaa')
   try {
     const order = await Order.findByIdAndUpdate(
       req.params.id,
@@ -105,6 +109,16 @@ exports.update = async (req, res, next) => {
       },
       { new: true },
     )
+      .select('-__v')
+      .populate('user', 'firstName address')
+      .populate({
+        path: 'orderItem',
+        populate: {
+          path: 'product',
+          select: 'productName',
+          populate: { path: 'category_id', select: 'categoryName' },
+        },
+      })
     if (!order) {
       return res.status(httpStatus.NOT_FOUND).send('Order not found!!')
     }
@@ -127,6 +141,9 @@ exports.viewuserorder = async (req, res, next) => {
           populate: { path: 'category_id', select: 'categoryName' },
         },
       })
+      .where('isActive')
+      .equals('true')
+      .select('-__v')
       .sort({ dateOrder: -1 })
     if (!userOrder) {
       throw Error('Orders not found!!')
@@ -138,7 +155,6 @@ exports.viewuserorder = async (req, res, next) => {
 }
 
 exports.viewAOrder = async (req, res, next) => {
-  console.log(req.params.id, 'aaqaaa')
   try {
     const order = await Order.findById(req.params.id)
       .select('-__v')
@@ -151,6 +167,10 @@ exports.viewAOrder = async (req, res, next) => {
           populate: { path: 'category_id', select: 'categoryName' },
         },
       })
+      .where('isActive')
+      .equals('true')
+      .select('-__v')
+      .sort({ dateOrder: -1 })
 
     if (!order) {
       throw Error('Orders not found!!')
@@ -168,6 +188,24 @@ exports.count = async (req, res, next) => {
       if (!count) return res.status(httpStatus.NOT_FOUND).send('No data found')
       return res.status(httpStatus.OK).json({ count })
     })
+  } catch (error) {
+    next(error)
+  }
+}
+
+exports.delete = async (req, res, next) => {
+  try {
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      {
+        isActive: false,
+      },
+      { new: true },
+    )
+    if (!order) {
+      return res.status(httpStatus.NOT_FOUND).send('Order not found!!')
+    }
+    return res.status(httpStatus.OK).json({ order })
   } catch (error) {
     next(error)
   }

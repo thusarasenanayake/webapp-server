@@ -91,6 +91,7 @@ exports.view = async (req, res, next) => {
 }
 
 exports.login = async (req, res, next) => {
+  console.log(req.body)
   try {
     const user = await Staff.findOne({ email: req.body.email })
       .where('status')
@@ -110,6 +111,7 @@ exports.login = async (req, res, next) => {
       )
       return res.status(httpStatus.OK).send({ user: user, token: token })
     } else {
+      console.log('hi')
       return res.status(httpStatus.NOT_FOUND).send('Password is wrong!')
     }
   } catch (error) {

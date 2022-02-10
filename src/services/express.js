@@ -25,11 +25,10 @@ app.use(function (req, res, next) {
   next()
 })
 
-app.get('/', (req, res) => {
-  return res.json({ message: 'Hello' })
-})
+// app.get('/', (req, res) => {
+//   return res.json({ message: 'Hello' })
+// })
 app.use(authJwt())
-app.use('/public', express.static('public'))
 app.use('/api', apiRouter)
 app.use(errorHandler.handleError)
 

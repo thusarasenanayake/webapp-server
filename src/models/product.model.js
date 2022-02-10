@@ -7,17 +7,7 @@ const productsSchema = new Schema(
       type: String,
       required: true,
     },
-    description: {
-      type: String,
-    },
-    image: {
-      type: String,
-    },
-    images: [
-      {
-        type: String,
-      },
-    ],
+
     price: {
       type: Number,
       default: 0,
@@ -37,11 +27,6 @@ const productsSchema = new Schema(
     inStock: {
       type: Number,
       default: 0,
-    },
-    isAvailable: {
-      type: Boolean,
-      default: true,
-      required: true,
     },
     dateCreated: {
       type: Date,

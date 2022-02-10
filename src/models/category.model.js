@@ -18,7 +18,7 @@ const categoriesSchema = new Schema(
       type: Boolean,
       default: true,
     },
-    displayPrice: { type: Number, required: true },
+    //displayPrice: { type: Number, required: true },
   },
   { timestamps: true },
 )

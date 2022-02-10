@@ -38,6 +38,10 @@ const orderSchema = mongoose.Schema({
     ref: 'customer',
     required: true,
   },
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
   dateOrder: {
     type: Date,
     default: Date.now,

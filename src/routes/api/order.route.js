@@ -21,5 +21,5 @@ router.get('/myorder/:id', orderController.viewAOrder)
 router.get('/count', orderController.count)
 
 // delete
-// router.delete('/:id',orderController.remove);
+router.put('/delete/:id', orderController.delete)
 module.exports = router
