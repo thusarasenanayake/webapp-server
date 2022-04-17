@@ -4,78 +4,104 @@ const Order = require('../models/order.model')
 const OrderItems = require('../models/order-Items.model')
 
 exports.create = async (req, res, next) => {
-  const data = req.body.orderItems
-  console.log(data)
-  try {
-    for (let i = 0; i < data.length; i++) {
-      const productStock = await Product.findById(data[i].productID)
-        .where('inStock')
-        .gte(data[i].quantity)
-        .populate('_id')
+  const data = req.body.orderData;
+    try {
+        for (let i = 0; i < data.length; i++) {
+          const productStock = await Product.findById(data[i].productID)
+            .where('inStock')
+            .gte(data[i].quantity)
+            .populate('_id')
+    
+          if (productStock === null) {
+            return res
+              .status(httpStatus.BAD_REQUEST)
+              .send('This order cannot create')
+          }
+        }
+    
+        const orderItemIDs = Promise.all(
+          req.body.orderData.map(async (orderItem) => {
+            let itemCount = await Product.findById(orderItem.productID).populate(
+              '_id',
+            )
+            await Product.findByIdAndUpdate(
+              orderItem.productID,
+              {
+                inStock: itemCount.inStock - orderItem.quantity,
+              },
+              { new: true },
+            )
+            let newOrderItem = new OrderItems({
+              quantity: orderItem.quantity,
+              product: orderItem.productID,
+            })
+            newOrderItem = await newOrderItem.save()
+            return newOrderItem._id
 
-      if (productStock === null) {
-        console.log(productStock)
-        return res
-          .status(httpStatus.BAD_REQUEST)
-          .send('This order cannot create')
-      }
-    }
-
-    const orderItemIDs = Promise.all(
-      req.body.orderItems.map(async (orderItem) => {
-        let itemCount = await Product.findById(orderItem.productID).populate(
-          '_id',
+          }),
         )
-        await Product.findByIdAndUpdate(
-          orderItem.productID,
-          {
-            inStock: itemCount.inStock - orderItem.quantity,
-          },
-          { new: true },
+        const orderItemIDsResolved = await orderItemIDs
+    
+        //calculating total price from backend database
+        const total = await Promise.all(
+          orderItemIDsResolved.map(async (index) => {
+            const orderItem = await OrderItems.findById(index).populate('product')
+            const totalPrice = orderItem.product.price * orderItem.quantity
+            return totalPrice
+          }),
         )
-        let newOrderItem = new OrderItems({
-          quantity: orderItem.quantity,
-          product: orderItem.productID,
+        //merg array of total prices and get sum of all prices {=+orderitem*qty}[a+b+c]
+        const totalPrices = total.reduce((a, b) => a + b, 0)
+    
+        //saving orders
+        let order = new Order({
+          orderItem: orderItemIDsResolved,
+          shippingAddress: req.body.data.shippingAddress,
+          city: req.body.city,
+          phoneNumber: req.body.data.phoneNumber,
+          user: req.params.id,
+          landmark: req.body.data.landmark,
+          totalPrice: totalPrices,
+          receiverName: req.body.receiverName,
         })
-        newOrderItem = await newOrderItem.save()
-        return newOrderItem._id
-      }),
-    )
-    const orderItemIDsResolved = await orderItemIDs
+        order = await order.save()
+        if (!order)
+          return res.status(httpStatus.BAD_REQUEST).send('This order cannot create')
+        return res.status(httpStatus.CREATED).json({ order })
+      } catch (error) {
+        console.log('error');
+        next(error)
+      }
+}
 
-    //calculating total price from backend database
-    const total = await Promise.all(
-      orderItemIDsResolved.map(async (index) => {
-        const orderItem = await OrderItems.findById(index).populate('product')
-        const totalPrice = orderItem.product.price * orderItem.quantity
-        return totalPrice
-      }),
-    )
-    //merg array of total prices and get sum of all prices {=+orderitem*qty}[a+b+c]
-    const totalPrices = total.reduce((a, b) => a + b, 0)
-
-    //saving orders
-    let order = new Order({
-      orderItem: orderItemIDsResolved,
-      shippingAddress: req.body.data.shippingAddress,
-      city: req.body.city,
-      phoneNumber: req.body.data.phoneNumber,
-      user: req.params.id,
-      landmark: req.body.data.landmark,
-      totalPrice: totalPrices,
-      receiverName: req.body.receiverName,
-    })
-    order = await order.save()
-    if (!order)
-      return res.status(httpStatus.BAD_REQUEST).send('This order cannot create')
-    return res.status(httpStatus.CREATED).json({ order })
+exports.allOrders = async (req, res, next) => {
+  const filter = {}
+  try {
+    const orderList = await Order.find(filter)
+      .populate('user', 'firstName')
+      .populate({
+        path: 'orderItem',
+        populate: {
+          path: 'product',
+          select: 'productName',
+          populate: { path: 'category_id', select: 'categoryName' },
+        },
+      })
+      .where('isActive')
+      .equals('true')
+      .select('-__v')
+      .sort({ dateOrder: -1 })
+    if (!orderList)
+      return res.status(httpStatus.NOT_FOUND).send('No data found')
+    return res.status(httpStatus.OK).json({ orderList })
   } catch (error) {
     next(error)
   }
 }
-
-exports.list = async (req, res, next) => {
-  const filter = {}
+exports.orderCategoryLists = async (req, res, next) => {
+ console.log(req.params.status);
+  const filter = {status:req.params.status}
+  console.log(filter);
   try {
     const orderList = await Order.find(filter)
       .populate('user', 'firstName')

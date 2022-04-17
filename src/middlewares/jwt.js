@@ -14,8 +14,8 @@ function authjwt() {
       { url: /\/api\/category(.*)/, methods: ['GET', 'OPTIONS'] }, //regx url for multiurl
       '/api/staff/login',
       '/api/customer/login',
-      '/api/staff',
-      '/api/customer',
+      // '/api/staff',
+      // '/api/customer',
       // { url: /(.*)/ }, //all urls
     ],
   })

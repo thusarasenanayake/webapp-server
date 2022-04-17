@@ -12,17 +12,17 @@ const orderSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  // city: {
-  //   type: String,
-  //   required: true,
-  // },
+  city: {
+    type: String,
+  //  required: true,
+  },
   phoneNumber: {
     type: Number,
     required: true,
   },
   status: {
     type: String,
-    default: 'pending',
+    default: 'processing',
   },
   totalPrice: {
     type: Number,

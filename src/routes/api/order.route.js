@@ -12,7 +12,8 @@ router.post('/:id', orderController.create)
 router.put('/:id', orderController.update)
 
 //  get all orders data
-router.get('/list', orderController.list)
+router.get('/list', orderController.allOrders)
+router.get('/list/:status', orderController.orderCategoryLists)
 
 // get a single user order info
 router.get('/myorders/:userid', orderController.viewuserorder)
