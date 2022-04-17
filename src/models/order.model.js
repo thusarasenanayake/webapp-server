@@ -13,8 +13,9 @@ const orderSchema = mongoose.Schema({
     required: true,
   },
   city: {
-    type: String,
-  //  required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'deliveryArea',
+    required: true,
   },
   phoneNumber: {
     type: Number,
@@ -26,6 +27,12 @@ const orderSchema = mongoose.Schema({
   },
   totalPrice: {
     type: Number,
+    required: true,
+
+  },
+  subTotalPrice: {
+    type: Number,
+    required: true,
   },
   ReceiverName: {
     type: String,

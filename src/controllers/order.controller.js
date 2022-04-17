@@ -60,10 +60,11 @@ exports.create = async (req, res, next) => {
         let order = new Order({
           orderItem: orderItemIDsResolved,
           shippingAddress: req.body.data.shippingAddress,
-          city: req.body.city,
+          city: req.body.data.city,
           phoneNumber: req.body.data.phoneNumber,
           user: req.params.id,
           landmark: req.body.data.landmark,
+          subTotalPrice: subTotalPrice,
           totalPrice: totalPrice,
           receiverName: req.body.receiverName,
         })
@@ -188,6 +189,7 @@ exports.viewAOrder = async (req, res, next) => {
     const order = await Order.findById(req.params.id)
       .select('-__v')
       .populate('user', 'firstName address')
+      .populate('city', 'city price')
       .populate({
         path: 'orderItem',
         populate: {
