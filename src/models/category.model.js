@@ -13,6 +13,7 @@ const categoriesSchema = new Schema(
     },
     image: {
       type: String,
+      required: true,
     },
     isAvailable: {
       type: Boolean,

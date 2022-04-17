@@ -2,6 +2,8 @@ const httpStatus = require('http-status')
 const Product = require('../models/product.model')
 const Order = require('../models/order.model')
 const OrderItems = require('../models/order-Items.model')
+const DeliveryLocations = require('../models/deliveryArea.model')
+
 
 exports.create = async (req, res, next) => {
   const data = req.body.orderData;
@@ -18,7 +20,8 @@ exports.create = async (req, res, next) => {
               .send('This order cannot create')
           }
         }
-    
+        const deliveryFee = await DeliveryLocations.findById(req.body.data.city).select('price')
+        // await DeliveryLocations.findById()
         const orderItemIDs = Promise.all(
           req.body.orderData.map(async (orderItem) => {
             let itemCount = await Product.findById(orderItem.productID).populate(
@@ -51,8 +54,8 @@ exports.create = async (req, res, next) => {
           }),
         )
         //merg array of total prices and get sum of all prices {=+orderitem*qty}[a+b+c]
-        const totalPrices = total.reduce((a, b) => a + b, 0)
-    
+        const subTotalPrice = total.reduce((a, b) => a + b, 0)
+        const totalPrice = subTotalPrice  + Number(deliveryFee.price)
         //saving orders
         let order = new Order({
           orderItem: orderItemIDsResolved,
@@ -61,7 +64,7 @@ exports.create = async (req, res, next) => {
           phoneNumber: req.body.data.phoneNumber,
           user: req.params.id,
           landmark: req.body.data.landmark,
-          totalPrice: totalPrices,
+          totalPrice: totalPrice,
           receiverName: req.body.receiverName,
         })
         order = await order.save()

@@ -5,23 +5,23 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 
 exports.create = async (req, res, next) => {
-  console.log(req.body)
+  console.log(req.body,'kkk')
   try {
-    const user = await Staff.findOne({ email: req.body.email })
+    const user = await Staff.findOne({ userName: req.body.userName })
     if (user) {
+      console.log(user);
       return res
         .status(httpStatus.UNPROCESSABLE_ENTITY)
-        .send('Email  Already exists!!')
+        .send('userName  Already exists!!')
     } else {
+      console.log('awa');
       const user = new Staff({
         firstName: req.body.firstName,
         lastName: req.body.lastName,
-        email: req.body.email,
+        userName: req.body.userName,
         password: bcrypt.hashSync(req.body.password, 10),
         phoneNumber: req.body.phoneNumber,
         address: req.body.address,
-        isAdmin: req.body.isAdmin,
-        //role: req.body.role,
       })
       await user.save()
       return res.status(httpStatus.CREATED).json({ user, success: true })
@@ -93,7 +93,7 @@ exports.view = async (req, res, next) => {
 exports.login = async (req, res, next) => {
   console.log(req.body)
   try {
-    const user = await Staff.findOne({ email: req.body.email })
+    const user = await Staff.findOne({ userName: req.body.userName })
       .where('status')
       .equals('active')
     const secret = process.env.secret

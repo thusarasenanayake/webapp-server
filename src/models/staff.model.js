@@ -9,7 +9,7 @@ const usersSchema = new Schema(
     lastName: {
       type: String,
     },
-    email: {
+    userName: {
       type: String,
     },
     phoneNumber: {
@@ -37,11 +37,6 @@ const usersSchema = new Schema(
     isAdmin: {
       type: Boolean,
       default: false,
-    },
-    role: {
-      type: String,
-      default: 'employee',
-      enum: ['admin', 'employee'],
     },
   },
   { timestamps: true },
