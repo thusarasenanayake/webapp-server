@@ -180,7 +180,6 @@ exports.list = async (req, res, next) => {
       })
     }
   }
-  console.log(req.params)
   try {
     const { id } = req.params
     const cartList = await Cart.findOne({ customerID: id })
