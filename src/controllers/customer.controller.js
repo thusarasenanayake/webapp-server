@@ -5,7 +5,6 @@ const { query } = require('express')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 exports.create = async (req, res, next) => {
-  console.log(req.body)
   try {
     const customer = await Customer.findOne({ email: req.body.email })
     if (customer) {
@@ -67,7 +66,6 @@ exports.update = async (req, res, next) => {
 exports.view = async (req, res, next) => {
   try {
     const { id } = req.params
-    console.log('Requested user id', id)
     const customer = await Customer.findById(id)
       .where('status')
       .equals('active')

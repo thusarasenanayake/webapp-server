@@ -12,10 +12,10 @@ function authjwt() {
       // { url: /\/public\/uploads(.*)/, methods: ['GET', 'OPTIONS'] },
       { url: /\/api\/product(.*)/, methods: ['GET', 'OPTIONS'] }, //regx url for multiurl
       { url: /\/api\/category(.*)/, methods: ['GET', 'OPTIONS'] }, //regx url for multiurl
+      { url: /\/api\/reset/, methods: ['POST', 'OPTIONS'] }, //regx url for multiurl
+      { url: /\/api\/customer/, methods: ['POST', 'OPTIONS'] }, //regx url for multiurl
       '/api/staff/login',
       '/api/customer/login',
-      // '/api/staff',
-      // '/api/customer',
       // { url: /(.*)/ }, //all urls
     ],
   })

@@ -1,13 +1,17 @@
 const httpStatus = require('http-status')
+const { mailService } = require("../services/mail");
 const Product = require('../models/product.model')
 const Order = require('../models/order.model')
 const OrderItems = require('../models/order-Items.model')
 const DeliveryLocations = require('../models/deliveryArea.model')
-
+const Customer = require('../models/customer.model')
 
 exports.create = async (req, res, next) => {
   const data = req.body.orderData;
+  const user = req.body.data.user;
     try {
+      const userDetails = await Customer.findById(user)
+      if(userDetails){
         for (let i = 0; i < data.length; i++) {
           const productStock = await Product.findById(data[i].productID)
             .where('inStock')
@@ -69,13 +73,18 @@ exports.create = async (req, res, next) => {
           receiverName: req.body.receiverName,
         })
         order = await order.save()
-        if (!order)
-          return res.status(httpStatus.BAD_REQUEST).send('This order cannot create')
+        console.log(order._id);
+        if (order){
+          mailService({ type:'order-confirmation',email: userDetails.email, order_id:order._id });
         return res.status(httpStatus.CREATED).json({ order })
-      } catch (error) {
+        }else{
+          return res.status(httpStatus.BAD_REQUEST).send('This order cannot create')
+       }
+      }
+    } catch (error) {
         console.log('error');
         next(error)
-      }
+    }
 }
 
 exports.allOrders = async (req, res, next) => {
