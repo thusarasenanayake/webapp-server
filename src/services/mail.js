@@ -134,7 +134,7 @@ exports.mailService = async (props) => {
 		  <tr>
 			<td style="overflow-wrap:break-word;word-break:break-word;padding:10px 10px 0px;font-family:arial,helvetica,sans-serif;" align="left">
 		<div style="line-height: 130%; text-align: left; word-wrap: break-word;">
-		  <p style="font-size: 14px; line-height: 140%; text-align: center;"><span style="font-size: 36px; line-height: 50.4px;"><strong><span style="line-height: 50.4px; font-family: Poppins, sans-serif; font-size: 36px;">Thank you for placing your order with our store</span></strong></span></p>
+		  <p style="font-size: 14px; line-height: 140%; text-align: center;"><span style="font-size: 36px; line-height: 50.4px;"><strong><span style="line-height: 50.4px; font-family: Poppins, sans-serif; font-size: 36px;">${props.message}</span></strong></span></p>
 		  <table class="button_block" width="100%" border="0" cellpadding="15" cellspacing="0" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
 			  <tr>
 				  <td>
@@ -177,7 +177,7 @@ exports.mailService = async (props) => {
 		let info = await transporter.sendMail({
 			from: `"Ruwan Bakehouse Online Ordering System" <${config.sendEmailAddress}>`,
 			to: props.email,
-			subject: "Login Credentials",
+			subject: props.subject,
 			html: content,
 		});
 

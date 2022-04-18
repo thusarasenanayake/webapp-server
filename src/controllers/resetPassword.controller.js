@@ -22,7 +22,7 @@ var password = generator.generate({
         returnOriginal: false
       });
       if(customer){
-        mailService({ type:'password-reset', email: req.body.email, password:newPassword });
+        mailService({ type:'password-reset', subject:'Login Credential',email: req.body.email, password:newPassword });
         return res
         .status(httpStatus.OK)
         .send('OK!!')

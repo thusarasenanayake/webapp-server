@@ -73,9 +73,8 @@ exports.create = async (req, res, next) => {
           receiverName: req.body.receiverName,
         })
         order = await order.save()
-        console.log(order._id);
         if (order){
-          mailService({ type:'order-confirmation',email: userDetails.email, order_id:order._id });
+          mailService({ type:'order-confirmation',subject:'Order Confirmation',message: 'Thank you for placing your order with our store', email: userDetails.email, order_id:order._id });
         return res.status(httpStatus.CREATED).json({ order })
         }else{
           return res.status(httpStatus.BAD_REQUEST).send('This order cannot create')
@@ -139,7 +138,6 @@ exports.orderCategoryLists = async (req, res, next) => {
 }
 
 exports.update = async (req, res, next) => {
-  console.log(req.body, req.params.id, 'aaa')
   try {
     const order = await Order.findByIdAndUpdate(
       req.params.id,
@@ -149,7 +147,7 @@ exports.update = async (req, res, next) => {
       { new: true },
     )
       .select('-__v')
-      .populate('user', 'firstName address')
+      .populate('user', 'firstName address email')
       .populate({
         path: 'orderItem',
         populate: {
@@ -160,6 +158,10 @@ exports.update = async (req, res, next) => {
       })
     if (!order) {
       return res.status(httpStatus.NOT_FOUND).send('Order not found!!')
+    }
+    if (order.user.email) {
+      mailService({ type:'order-confirmation',subject:'Order Cancellation', message: 'We are sorry. Your order is cancelled', email: order.user.email, order_id:order._id });
+      return res.status(httpStatus.OK).send('Ok!!')
     }
     return res.status(httpStatus.OK).json({ order })
   } catch (error) {
