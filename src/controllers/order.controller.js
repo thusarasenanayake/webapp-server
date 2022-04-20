@@ -90,7 +90,7 @@ exports.allOrders = async (req, res, next) => {
   const filter = {}
   try {
     const orderList = await Order.find(filter)
-      .populate('user', 'firstName')
+      .populate('user', 'firstName lastName')
       .populate({
         path: 'orderItem',
         populate: {
@@ -160,10 +160,17 @@ exports.update = async (req, res, next) => {
       return res.status(httpStatus.NOT_FOUND).send('Order not found!!')
     }
     if (order.user.email) {
-      mailService({ type:'order-confirmation',subject:'Order Cancellation', message: 'We are sorry. Your order is cancelled', email: order.user.email, order_id:order._id });
-      return res.status(httpStatus.OK).send('Ok!!')
+      if( req.body.status==='cancelled'){
+        mailService({ type:'order-confirmation',subject:'Order Cancellation', message: 'We are sorry. Your order is cancelled 😢😒', email: order.user.email, order_id:order._id });
+         return res.status(httpStatus.OK).json({ order })
+      }else if(req.body.status==='shipped'){
+        mailService({ type:'order-confirmation',subject:'Order Shipped', message: 'Your order is on the way. Get ready🥳', email: order.user.email, order_id:order._id });
+        return res.status(httpStatus.OK).json({ order })
+      }else if(req.body.status==='delivered'){
+        mailService({ type:'order-confirmation',subject:'Order Delivered', message: 'Your order is delivered. Enjoy it and give us your valuable feedback', email: order.user.email, order_id:order._id });
+        return res.status(httpStatus.OK).json({ order })
+      }
     }
-    return res.status(httpStatus.OK).json({ order })
   } catch (error) {
     next(error)
   }

@@ -17,6 +17,8 @@ router.post('/login', staffController.login)
 router.get('/:id', staffController.view)
 //update user data
 router.put('/:id', staffController.update)
+router.put('/reset/:id', staffController.reset)
+
 //temp delete
 router.put('/delete/:id', staffController.delete)
 //permernent delete

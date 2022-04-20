@@ -33,23 +33,75 @@ exports.create = async (req, res, next) => {
 exports.update = async (req, res, next) => {
   try {
     console.log(req.body, 'body')
-    const user = await Staff.findByIdAndUpdate(
-      req.params.id,
-      {
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        //email: req.body.email,
-        phoneNumber: req.body.phoneNumber,
-        address: req.body.address,
-        isAdmin: req.body.isAdmin,
-      },
-      { new: true },
-    )
+    const user = await Staff.findById(req.params.id)   
+    .where('status')
+    .equals('active')
+    console.log(user);
+    if(user){
+      if(user.userName === req.body.userName){
+        const staff = await Staff.findByIdAndUpdate(
+          req.params.id,
+          {
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+          },
+          { new: true },
+        )
+       return res.status(httpStatus.OK).json({ user, success: true })
+
+      }else{
+        const user = await Staff.findOne({ userName: req.body.userName })
+        if(!user){  
+          const staff = await Staff.findByIdAndUpdate(
+          req.params.id,
+          {
+            userName: req.body.userName,
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+          },
+          { new: true },
+        )
+        return res.status(httpStatus.OK).json({ user, success: true })
+      }
+      else{
+       return res.status(httpStatus.UNPROCESSABLE_ENTITY).send('Already exist')
+      }
+      }
+    }
+   
     if (!user) {
       return res.status(httpStatus.NOT_FOUND).send('User not found!!')
     }
-    return res.status(httpStatus.OK).json({ user, success: true })
     //}
+  } catch (error) {
+    next(error)
+  }
+}
+
+exports.reset = async (req, res, next) => {
+  console.log(req.body,'kkk')
+  try {
+    const user = await Staff.findById(req.params.id)   
+    .where('status')
+    .equals('active')
+    if (!user) {
+          return res.status(httpStatus.NOT_FOUND).send('User not found!!')
+        }
+      if (user && bcrypt.compareSync(req.body.current_password, user.password)){
+        console.log('lo');
+        const staff = await Staff.findByIdAndUpdate(
+          req.params.id,
+          {
+          password: bcrypt.hashSync(req.body.password, 10),
+          },
+          { new: true },
+      )}else{
+      return res.status(httpStatus.NOT_FOUND).json("Password Not matched")
+      }
+      return res
+        .status(httpStatus.OK)
+        .send('Password changed')
+  
   } catch (error) {
     next(error)
   }
@@ -75,12 +127,10 @@ exports.delete = async (req, res, next) => {
 
 exports.view = async (req, res, next) => {
   try {
-    const { id } = req.params
-    console.log('Requested user id', id)
-    const user = await Staff.findById(id)
+    const user = await Staff.findById(req.params.id)
       .where('status')
       .equals('active')
-      .select('-__v')
+      .select('userName firstName lastName')
     if (!user) {
       throw Error('User not found!!')
     }
@@ -91,13 +141,15 @@ exports.view = async (req, res, next) => {
 }
 
 exports.login = async (req, res, next) => {
-  console.log(req.body)
   try {
     const user = await Staff.findOne({ userName: req.body.userName })
       .where('status')
       .equals('active')
     const secret = process.env.secret
+  console.log(user,'hi')
+
     if (!user) {
+  console.log(user,'hi2')
       return res.status(httpStatus.NOT_FOUND).send('User not found!!')
     }
     if (user && bcrypt.compareSync(req.body.password, user.password)) {
