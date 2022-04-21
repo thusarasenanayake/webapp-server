@@ -141,6 +141,7 @@ exports.view = async (req, res, next) => {
 }
 
 exports.login = async (req, res, next) => {
+  console.log(req.body);
   try {
     const user = await Staff.findOne({ userName: req.body.userName })
       .where('status')

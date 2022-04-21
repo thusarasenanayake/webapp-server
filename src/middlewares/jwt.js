@@ -5,25 +5,18 @@ function authjwt() {
   return expressjwt({
     secret,
     algorithms: ['HS256'],
-    // isRevoked: isRevoked, //expressjwt method for check user's role
   }).unless({
     //non token urls
     path: [
-      // { url: /\/public\/uploads(.*)/, methods: ['GET', 'OPTIONS'] },
       { url: /\/api\/product(.*)/, methods: ['GET', 'OPTIONS'] }, //regx url for multiurl
-      { url: /\/api\/category(.*)/, methods: ['GET', 'OPTIONS'] }, //regx url for multiurl
-      { url: /\/api\/reset/, methods: ['POST', 'OPTIONS'] }, //regx url for multiurl
-      { url: /\/api\/customer/, methods: ['POST', 'OPTIONS'] }, //regx url for multiurl
+      { url: /\/api\/category(.*)/, methods: ['GET', 'OPTIONS'] },
+      { url: /\/api\/reset/, methods: ['POST', 'OPTIONS'] }, 
+      { url: /\/api\/customer/, methods: ['POST', 'OPTIONS'] }, 
       '/api/staff/login',
       '/api/customer/login',
       // { url: /(.*)/ }, //all urls
     ],
   })
 }
-async function isRevoked(req, payload, done) {
-  if (!payload.isAdmin) {
-    done(null, true)
-  }
-  done()
-}
+
 module.exports = authjwt
