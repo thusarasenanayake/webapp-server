@@ -1,8 +1,11 @@
 const Product = require('../models/product.model')
 const Category = require('../models/category.model')
-const httpStatus = require('http-status')
+const httpStatus = require('http-status');
+const permission = require('../middlewares/permissionLevel');
 
 exports.create = async (req, res, next) => {
+  await permission(req.user, res, true);
+
   console.log(req.body)
   try {
     const categoryID = req.body.category_id
@@ -29,35 +32,6 @@ exports.create = async (req, res, next) => {
     next(error)
   }
 }
-
-// exports.galleryUpdate = async (req, res, next) => {
-//   const files = req.files
-//   console.log(req.files)
-//   const protocol = req.protocol
-//   const host = req.get('host')
-//   const basePath = protocol + '://' + host + '/public/uploads/'
-//   let imagesPaths = []
-//   if (files) {
-//     files.map((file) => {
-//       imagesPaths.push(basePath + file.filename)
-//     })
-//   }
-//   try {
-//     const product = await Product.findByIdAndUpdate(
-//       req.params.id,
-//       {
-//         images: req.body.images,
-//       },
-//       { new: true },
-//     )
-//     if (!product) {
-//       return res.status(httpStatus.NOT_FOUND).send('Product not found!!')
-//     }
-//     return res.status(httpStatus.OK).json({ product })
-//   } catch (error) {
-//     next(error)
-//   }
-// }
 
 exports.view = async (req, res, next) => {
   try {
@@ -115,6 +89,8 @@ exports.update = async (req, res, next) => {
 }
 exports.delete = async (req, res, next) => {
   console.log(req.params.id, 'hi')
+  await permission(req.user, res, true);
+
   try {
     const product = await Product.findByIdAndUpdate(
       req.params.id,

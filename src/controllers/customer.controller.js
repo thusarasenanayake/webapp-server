@@ -65,7 +65,7 @@ exports.update = async (req, res, next) => {
 
 exports.view = async (req, res, next) => {
   try {
-    const { id } = req.params
+    const id = req.user.customerID
     const customer = await Customer.findById(id)
       .where('status')
       .equals('active')

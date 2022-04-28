@@ -141,16 +141,14 @@ exports.view = async (req, res, next) => {
 }
 
 exports.login = async (req, res, next) => {
-  console.log(req.body);
+  console.log(req.body,'lll');
   try {
     const user = await Staff.findOne({ userName: req.body.userName })
       .where('status')
       .equals('active')
     const secret = process.env.secret
-  console.log(user,'hi')
 
     if (!user) {
-  console.log(user,'hi2')
       return res.status(httpStatus.NOT_FOUND).send('User not found!!')
     }
     if (user && bcrypt.compareSync(req.body.password, user.password)) {
@@ -164,7 +162,6 @@ exports.login = async (req, res, next) => {
       )
       return res.status(httpStatus.OK).send({ user: user, token: token })
     } else {
-      console.log('hi')
       return res.status(httpStatus.NOT_FOUND).send('Password is wrong!')
     }
   } catch (error) {

@@ -34,10 +34,11 @@ const orderSchema = mongoose.Schema({
     type: Number,
     required: true,
   },
-  ReceiverName: {
+  receiverName: {
     type: String,
+    required: true,
   },
-  Landmark: {
+  landmark: {
     type: String,
   },
   user: {

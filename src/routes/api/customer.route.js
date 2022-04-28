@@ -14,7 +14,7 @@ router.put('/:id', customerController.update)
 //login
 router.post('/login', customerController.login)
 // get a user data
-router.get('/:id', customerController.view)
+router.get('/', customerController.view)
 //cdelete
 router.put('/delete/:id', customerController.delete)
 // router.put('/:id', customerController.delete)

@@ -10,12 +10,6 @@ const orderItemsSchema = mongoose.Schema({
         ref: 'products',
         required: true
     },
-    // status: {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: 'order',
-    //     // default:'pending',
-    //     // required: true
-    // },
 })
 
 

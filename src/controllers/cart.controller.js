@@ -1,12 +1,17 @@
 const httpStatus = require('http-status')
 const Cart = require('../models/cart.model')
 const Product = require('../models/product.model')
+const Customer = require('../models/customer.model')
 
 exports.update = async (req, res, next) => {
+  console.log(req.user,'hi');
   try {
-    const { id } = req.params
+    console.log('ll');
+    const  id  = req.user.customerID
     let isMatched = false
-    if (id !== 'null') {
+    const customer = await Customer.findById(id)
+   
+    if (customer) {
       const cartDetails = await Cart.findOne({ customerID: id })
         .where('status')
         .equals('active')
@@ -57,8 +62,7 @@ exports.update = async (req, res, next) => {
 }
 exports.clear = async (req, res, next) => {
   try {
-    const { id } = req.params
-    let reqData = req.body.newProduct
+    const  id  = req.user.customerID
     const cartDetails = await Cart.findOne({ customerID: id })
       .where('status')
       .equals('active')
@@ -81,8 +85,9 @@ exports.clear = async (req, res, next) => {
   }
 }
 exports.delete = async (req, res, next) => {
+  console.log('halo',req.user);
   try {
-    const { id } = req.params
+    const id = req.user.customerID
     const cartDetails = await Cart.findOne({ customerID: id })
       .where('status')
       .equals('active')
@@ -116,7 +121,7 @@ exports.delete = async (req, res, next) => {
 exports.updateQuantity = async (req, res, next) => {
   console.log(req.body, 'qqqq')
   try {
-    const { id } = req.params
+    const id = req.user.customerID
     const cartDetails = await Cart.findOne({ customerID: id })
       .where('status')
       .equals('active')
@@ -181,7 +186,7 @@ exports.list = async (req, res, next) => {
     }
   }
   try {
-    const { id } = req.params
+    const  id  = req.user.customerID
     const cartList = await Cart.findOne({ customerID: id })
       .select('-__v')
       .populate({ path: 'cartItem.item', model: Product })
