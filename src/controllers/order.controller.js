@@ -140,54 +140,6 @@ exports.search = async (req, res, next) => {
     next(error)
   }
 }
-exports.report = async (req, res, next) => {
-  let productNm = [] 
-  let productCount =[]
-  let orderItem=[]
-  const date = req.body.state
-  
-  try {
-    const orderItems = await Order.find({ dateOrder: { $gte: date[0].startDate, $lte: date[0].endDate }}).select('orderItem')
-    for (let j = 0; j < orderItems.length; j++){
-      for (let i = 0; i < orderItems[j].orderItem.length; i++){
-        let id =orderItems[j].orderItem[i].toString()
-        let orderListArray = await OrderItems.findById(id)
-        .populate('product', 'productName')
-        .select('quantity dateOrder')
-        orderItem.push(orderListArray)
-      }
-    }
-  console.log(orderItem);
-    const productList = await Product.find()
-    .select('_id productName')   
-    .where('status')
-    .equals('active')
-    let count =0;
-    if (orderItem.length>0){
-      for (let j = 0; j < productList.length; j++) {
-      productNm.push(productList[j].productName)
-      count =0;
-      for (let i = 0; i < orderItem.length; i++) {
-        if(productList[j]._id.toString()===orderItem[i].product._id.toString()){
-          count = count + orderItem[i].quantity
-        }
-      }
-      productCount.push(count)
-      }
-      }
-    const orderList = await OrderItems.find({ dateOrder: { $gte: date[0].startDate, $lte: date[0].endDate }})
-      .populate('product', 'productName')
-      .select('quantity dateOrder')
-      .sort({ dateOrder: -1 })
-     
-      
-    if (!orderList)
-      return res.status(httpStatus.NOT_FOUND).send('No data found')
-    return res.status(httpStatus.OK).json({productCount,productNm })
-  } catch (error) {
-    next(error)
-  }
-}
 
 exports.orderListByStatus = async (req, res, next) => {
   const filter = {status:req.params.status}

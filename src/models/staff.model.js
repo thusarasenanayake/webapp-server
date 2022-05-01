@@ -5,30 +5,19 @@ const usersSchema = new Schema(
   {
     firstName: {
       type: String,
+      required: true,
     },
     lastName: {
       type: String,
+      required: true,
     },
     userName: {
       type: String,
-    },
-    phoneNumber: {
-      type: Number,
-    },
-    houseNumber: {
-      type: String,
-    },
-    streetName: {
-      type: String,
-    },
-    city: {
-      type: String,
-    },
-    address: {
-      type: String,
+      required: true,
     },
     password: {
       type: String,
+      required: true,
     },
     status: {
       type: String,

@@ -13,6 +13,7 @@ const deliveryAreaSchema = new Schema(
     },
     price: {
       type: String,
+      required: true,
     },
   },
   { timestamps: true },

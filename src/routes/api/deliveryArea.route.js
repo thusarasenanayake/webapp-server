@@ -9,4 +9,5 @@ router.get('/', deliveryAreaController.list)
 router.get('/:id', deliveryAreaController.view)
 router.put('/delete/:id', deliveryAreaController.delete)
 
+
 module.exports = router

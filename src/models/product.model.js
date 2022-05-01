@@ -17,9 +17,6 @@ const productsSchema = new Schema(
       ref: 'categories',
       required: true,
     },
-    rating: {
-      type: Number,
-    },
     status: {
       type: String,
       default: 'active',
@@ -27,9 +24,6 @@ const productsSchema = new Schema(
     inStock: {
       type: Number,
       default: 0,
-    },
-    dateCreated: {
-      type: Date,
     },
   },
   { timestamps: true },

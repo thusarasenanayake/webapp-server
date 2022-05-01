@@ -11,20 +11,14 @@ exports.create = async (req, res, next) => {
     const categoryID = req.body.category_id
     const category = await Category.findById(categoryID)
     if (!category) {
-      console.log(category, req.body.productName)
       return res.status(httpStatus.BAD_REQUEST).json('Invalid Category')
     } else {
       const productData = new Product({
         productName: req.body.productName,
-        //   description: req.body.description,
-        //   image: req.body.image,
         price: req.body.price,
         category_id: req.body.category_id,
         inStock: req.body.inStock,
-        // rating: req.body.rating,
-        // dateCreated: req.body.dateCreated,
       })
-      console.log(productData)
       await productData.save()
       return res.status(httpStatus.CREATED).json({ productData })
     }
@@ -58,7 +52,7 @@ exports.list = async (req, res, next) => {
       .where('status')
       .equals('active')
       .select('-__v')
-      .populate({ path: 'category_id', model: Category })
+      .populate({ path: 'category_id', model: Category }).sort('inStock')
     const products = await query.exec()
     return res.status(httpStatus.OK).json({ products })
   } catch (error) {

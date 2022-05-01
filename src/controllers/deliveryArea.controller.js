@@ -1,4 +1,5 @@
 const DeliveryArea = require("../models/deliveryArea.model");
+const Order = require('../models/order.model')
 const httpStatus = require("http-status");
 exports.create = async (req, res, next) => {
   try {
@@ -102,3 +103,4 @@ exports.delete = async (req, res, next) => {
     next(error)
   }
 }
+
