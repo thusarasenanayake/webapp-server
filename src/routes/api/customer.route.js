@@ -9,6 +9,8 @@ const customerController = require('../../controllers/customer.controller')
 router.post('/', customerController.create)
 //  get all users data
 router.get('/list', customerController.list)
+router.get('/:id', customerController.view)
+
 //update
 router.put('/:id', customerController.update)
 //login

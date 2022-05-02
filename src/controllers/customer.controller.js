@@ -65,11 +65,12 @@ exports.update = async (req, res, next) => {
 
 exports.view = async (req, res, next) => {
   try {
-    const id = req.user.customerID
+     const { id } = req.params
     const customer = await Customer.findById(id)
       .where('status')
       .equals('active')
-      .select('-__v')
+      .select('firstName lastName email address phoneNumber')
+    console.log(customer);
     if (!customer) {
       throw Error('User not found!!')
     }

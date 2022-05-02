@@ -39,12 +39,49 @@ var mes = today.getMonth()+1;
 var dia = today.getDate();
   console.log(year,mes,dia);
 }
-  
+
+exports.income = async (req, res, next) => {
+  let totalPrice = []
+  let dateArray =[]
+  const date = req.body.state
+
+  function dateRange(startDate, endDate, steps = 1) {
+  const dateArray = [];
+  let currentDate = new Date(startDate);
+
+  while (currentDate <= new Date(endDate)) {
+    dateArray.push(new Date(currentDate));
+    // Use UTC date to prevent problems with time zones and DST
+    currentDate.setUTCDate(currentDate.getUTCDate() + steps);
+  }
+
+  return dateArray;
+}
+const dates = dateRange(date[0].startDate, date[0].endDate);
+  try {
+    for (let i = 0; i < dates.length; i++) {
+      var orders = await Order.find({ dateOrder:  { $gte: dates[i], $lte: dates[i+1]}}).select('totalPrice').where('status').equals('delivered')
+      let price = 0;
+          for (let j = 0; j < orders.length; j++) {
+            price += orders[j].totalPrice
+      }
+      totalPrice.push(price)
+      dateArray.push(dates[i].toDateString())
+      }
+    if (!orders)
+      return res.status(httpStatus.NOT_FOUND).send('No data found')
+    return res.status(httpStatus.OK).json({dateArray,totalPrice })
+  } catch (error) {
+    next(error)
+  }
+}
+
 exports.delivery = async (req, res, next) => {
   let cityName = [] 
   let cityCount =[]
   const date = req.body.state
   try {
+    console.log(date[0].startDate,date[0].endDate);
     const orderedCity = await Order.find({ dateOrder: { $gte: date[0].startDate, $lte: date[0].endDate }}
 ).select('city').where('status').equals('delivered')
     const cities = await DeliveryLocations.find()
@@ -124,16 +161,7 @@ exports.products = async (req, res, next) => {
 }
   
 exports.customer = async (req, res, next) => {
-  let customerName = [    [
-      {
-        firstName: 'No data found',
-      },
-    ],
-    [
-      {
-        firstName: 'No data found',
-      },
-    ],] 
+  let customerName = [ ] 
   let orderCount = []
   const date = req.body.state
   try {
