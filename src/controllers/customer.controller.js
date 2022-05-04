@@ -62,10 +62,30 @@ exports.update = async (req, res, next) => {
     next(error)
   }
 }
-
-exports.view = async (req, res, next) => {
+//customers data view him self
+exports.self = async (req, res, next) => {
+  // console.log('ll');
   try {
     const  id  = req.user.customerID
+    const customer = await Customer.findById(id)
+      .where('status')
+      .equals('active')
+      .select('firstName lastName email address phoneNumber')
+    // console.log('pp',customer);
+    if (!customer) {
+      throw Error('User not found!!')
+    }
+    return res.status(httpStatus.OK).json({ customer })
+  } catch (error) {
+    next(error)
+  }
+}
+// customer data view from staff end
+exports.view = async (req, res, next) => {
+  console.log('ll');
+  try {
+    const id = req.params.id
+    console.log(id);
     const customer = await Customer.findById(id)
       .where('status')
       .equals('active')

@@ -20,7 +20,6 @@ exports.dashboard = async (req, res, next) => {
     const totalCategories =await Category.count()
     const allTodayOrders = await Order.find({ dateOrder: { $gte: date, $lte: tomorrow } })
     let totalIncome =0
-    console.log(allTodayOrders[1].totalPrice);
     for (let i = 0; i < allTodayOrders.length; i++){
       totalIncome+=allTodayOrders[i].totalPrice
     }

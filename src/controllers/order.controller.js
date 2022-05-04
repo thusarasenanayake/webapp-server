@@ -116,10 +116,11 @@ exports.allOrders = async (req, res, next) => {
   }
 }
 exports.search = async (req, res, next) => {
+  const date = req.body.state
   console.log(req.body,'ll');
   const filter = {receiverName:req.body.searchData}
   try {
-    const orderList = await Order.find(filter)
+    const orderList = await Order.find({ dateOrder: { $gte: date[0].startDate, $lte: date[0].endDate }})
       .populate('user', 'firstName lastName')
       .populate({
         path: 'orderItem',

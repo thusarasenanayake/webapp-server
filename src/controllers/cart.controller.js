@@ -4,13 +4,18 @@ const Product = require('../models/product.model')
 const Customer = require('../models/customer.model')
 
 exports.update = async (req, res, next) => {
-  console.log(req.user,'hi');
   try {
-    console.log('ll');
-    const  id  = req.user.customerID
+    const id = req.user.customerID
+    const productID = req.body.productID
+    const qty = req.body.quantity
+
     let isMatched = false
     const customer = await Customer.findById(id)
-   
+    const product = await Product.findById(productID).select('inStock')
+         
+    if (product.inStock <qty) {
+        return res.status(httpStatus.FORBIDDEN).send('product not available')
+    }
     if (customer) {
       const cartDetails = await Cart.findOne({ customerID: id })
         .where('status')

@@ -10,6 +10,8 @@ router.post('/', customerController.create)
 //  get all users data
 router.get('/list', customerController.list)
 router.get('/:id', customerController.view)
+router.get('/', customerController.self)
+
 
 //update
 router.put('/:id', customerController.update)
