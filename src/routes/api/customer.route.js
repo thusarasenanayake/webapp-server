@@ -2,7 +2,6 @@ const express = require('express')
 const router = express.Router()
 
 const { validate } = require('express-validation')
-const usersValidation = require('../../validations/users.validation')
 const customerController = require('../../controllers/customer.controller')
 
 // create new user

@@ -55,8 +55,9 @@ exports.view = async (req, res, next) => {
 
 
 exports.update = async (req, res, next) => {
+  console.log(req.body._id);
   try {
-    const city = await DeliveryArea.findOne({ city: req.body.city })
+    const city = await DeliveryArea.findById( req.body._id )
     console.log(city)
     if (city) {
       const city = await DeliveryArea.findByIdAndUpdate(

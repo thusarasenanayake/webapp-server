@@ -8,6 +8,7 @@ const Customer = require('../models/customer.model');
 const permission = require('../middlewares/permissionLevel');
 
 exports.create = async (req, res, next) => {
+  console.log(req.body);
   const data = req.body.orderData;
   const user = req.user.customerID;
     try {

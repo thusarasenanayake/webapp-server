@@ -3,14 +3,10 @@ module.exports = {
   create: {
     body: Joi.object({
       _id: Joi.forbidden(),
-      productName: Joi.string().required(),
-      description: Joi.string().required(),
-      image: Joi.string(),
-      // images: Joi.string(),
+      productName: Joi.string().required().regex(/^[a-zA-Z ]+$/),
       price: Joi.number().required(),
       category_id: Joi.string().required(),
-      // rating: Joi.number(),
-      // dateCreated: Joi.string(),
+      inStock: Joi.number().required(),
     }),
   },
 }
