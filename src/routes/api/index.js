@@ -12,6 +12,7 @@ const deliveryRoute = require('./deliveryArea.route')
 const resetPasswordRoute = require('./resetPassword.route')
 const reportsRoute = require('./reports.route')
 const dashboardRoute = require('./dashboard.route')
+const searchRoute = require('./search.route')
 
 router.use('/authToken', authTokenRoute)
 router.use('/dashboard', dashboardRoute)
@@ -24,6 +25,7 @@ router.use('/cart', cartRoute)
 router.use('/delivery', deliveryRoute)
 router.use('/reset', resetPasswordRoute)
 router.use('/reports', reportsRoute)
+router.use('/search', searchRoute)
 
 
 module.exports = router

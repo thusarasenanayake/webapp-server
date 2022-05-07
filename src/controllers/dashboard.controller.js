@@ -5,6 +5,7 @@ const Category = require('../models/category.model')
 const DeliveryLocations = require('../models/deliveryArea.model')
 const Customer = require('../models/customer.model')
 const httpStatus = require('http-status')
+const { where } = require('../models/category.model')
 exports.dashboard = async (req, res, next) => {
   const filter = {}
   let data={}
@@ -13,12 +14,13 @@ exports.dashboard = async (req, res, next) => {
   console.log(date,date+1);
   try {
     const todayOrderCount = await Order.find({dateOrder: { $gte: date, $lte: tomorrow },status:'processing'}).count()
-    const totalOrderCount = await Order.find(filter).count()
+    const totalOrderCount = await Order.find(filter).count().where('isActive')
+      .equals('true')
     const newCustomer =await Customer.find({ dateRegistered: { $gte: date, $lte: tomorrow } }).count()
     const totalCustomer =await Customer.find(filter).count()
     const totalProducts = await Product.count()
     const totalCategories =await Category.count()
-    const allTodayOrders = await Order.find({ dateOrder: { $gte: date, $lte: tomorrow } })
+    const allTodayOrders = await Order.find({ dateOrder: { $gte: date, $lte: tomorrow } }).where('status').equals('delivered')
     let totalIncome =0
     for (let i = 0; i < allTodayOrders.length; i++){
       totalIncome+=allTodayOrders[i].totalPrice

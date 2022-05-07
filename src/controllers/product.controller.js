@@ -4,7 +4,7 @@ const httpStatus = require('http-status');
 const permission = require('../middlewares/permissionLevel');
 
 exports.create = async (req, res, next) => {
-  await permission(req.user, res, true);
+  await permission(req.user, res, true);//admin
 
   console.log(req.body)
   try {

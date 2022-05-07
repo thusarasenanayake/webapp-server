@@ -2,7 +2,6 @@ const express = require('express')
 const router = express.Router()
 const deliveryAreaController = require('../../controllers/deliveryArea.controller')
 
-// create new user
 router.post('/', deliveryAreaController.create)
 router.put('/:id', deliveryAreaController.update)
 router.get('/', deliveryAreaController.list)

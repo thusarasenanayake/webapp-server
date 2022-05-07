@@ -10,22 +10,18 @@ const permission = require('../middlewares/permissionLevel');
 function bubbleSort(arr1,arr2){
   var i, j;
   var len = arr1.length;
-    
   var isSwapped = false;
-    
   for(i =0; i < len; i++){
-      
     isSwapped = false;
-      
     for(j = 0; j < len; j++){
-        if(arr1[j] < arr1[j + 1]){
-          var temp1 = arr1[j]
-          var temp2 = arr2[j]
-          arr1[j] = arr1[j+1];
-          arr1[j + 1] = temp1;
-          arr2[j] = arr2[j+1];
-          arr2[j+1] = temp2;
-          isSwapped = true;
+      if (arr1[j] < arr1[j + 1]) {
+        var temp1 = arr1[j]
+        var temp2 = arr2[j]
+        arr1[j] = arr1[j + 1];
+        arr1[j + 1] = temp1;
+        arr2[j] = arr2[j + 1];
+        arr2[j + 1] = temp2;
+        isSwapped = true;
         }
     }
     if(!isSwapped){
@@ -33,18 +29,25 @@ function bubbleSort(arr1,arr2){
     }
   }
   console.log(arr1,arr2);
-var today = new Date();
-var year = today.getFullYear();
-var mes = today.getMonth()+1;
-var dia = today.getDate();
-  console.log(year,mes,dia);
+ 
 }
 
 exports.income = async (req, res, next) => {
   let totalPrice = []
   let dateArray =[]
   const date = req.body.state
+  let startDateNew = new Date(date[0].startDate)
+    startDateNew.setHours(startDateNew.getHours() + 5)
+    startDateNew.setMinutes(startDateNew.getMinutes() + 30)
 
+  let endDateNew = new Date(date[0].endDate)
+  endDateNew.setDate(endDateNew.getDate() + 1)
+  endDateNew.setHours(endDateNew.getHours() + 5)
+  endDateNew.setMinutes(endDateNew.getMinutes() + 29)
+  endDateNew.setSeconds(59)
+  endDateNew.setMilliseconds(999)
+  console.log(endDateNew, startDateNew);
+  
   function dateRange(startDate, endDate, steps = 1) {
   const dateArray = [];
   let currentDate = new Date(startDate);
@@ -57,7 +60,8 @@ exports.income = async (req, res, next) => {
 
   return dateArray;
 }
-const dates = dateRange(date[0].startDate, date[0].endDate);
+  const dates = dateRange(startDateNew, endDateNew);
+  
   try {
     for (let i = 0; i < dates.length; i++) {
       var orders = await Order.find({ dateOrder:  { $gte: dates[i], $lte: dates[i+1]}}).select('totalPrice').where('status').equals('delivered')
@@ -80,9 +84,20 @@ exports.delivery = async (req, res, next) => {
   let cityName = [] 
   let cityCount =[]
   const date = req.body.state
+  let startDateNew = new Date(date[0].startDate)
+    startDateNew.setHours(startDateNew.getHours() + 5)
+    startDateNew.setMinutes(startDateNew.getMinutes() + 30)
+
+    let endDateNew = new Date(date[0].endDate)
+    endDateNew.setDate(endDateNew.getDate() + 1)
+    endDateNew.setHours(endDateNew.getHours() + 5)
+    endDateNew.setMinutes(endDateNew.getMinutes() + 29)
+    endDateNew.setSeconds(59)
+    endDateNew.setMilliseconds(999)
+    console.log(endDateNew,startDateNew);
   try {
     console.log(date[0].startDate,date[0].endDate);
-    const orderedCity = await Order.find({ dateOrder: { $gte: date[0].startDate, $lte: date[0].endDate }}
+    const orderedCity = await Order.find({ dateOrder: { $gte: startDateNew, $lte: endDateNew }}
 ).select('city').where('status').equals('delivered')
     const cities = await DeliveryLocations.find()
     .select('_id city')   
@@ -112,13 +127,25 @@ exports.delivery = async (req, res, next) => {
 }
 
 exports.products = async (req, res, next) => {
+  await permission(req.user, res, true);//admin
+
   let productNm = [] 
   let productCount =[]
   let orderItem=[]
   const date = req.body.state
-  
+   let startDateNew = new Date(date[0].startDate)
+    startDateNew.setHours(startDateNew.getHours() + 5)
+    startDateNew.setMinutes(startDateNew.getMinutes() + 30)
+
+    let endDateNew = new Date(date[0].endDate)
+    endDateNew.setDate(endDateNew.getDate() + 1)
+    endDateNew.setHours(endDateNew.getHours() + 5)
+    endDateNew.setMinutes(endDateNew.getMinutes() + 29)
+    endDateNew.setSeconds(59)
+    endDateNew.setMilliseconds(999)
+    console.log(endDateNew,startDateNew);
   try {
-    const orderItems = await Order.find({ dateOrder: { $gte: date[0].startDate, $lte: date[0].endDate }}).select('orderItem').where('status').equals('delivered')
+    const orderItems = await Order.find({ dateOrder: { $gte:startDateNew , $lte: endDateNew }}).select('orderItem').where('status').equals('delivered')
     for (let j = 0; j < orderItems.length; j++){
       for (let i = 0; i < orderItems[j].orderItem.length; i++){
         let id =orderItems[j].orderItem[i].toString()
@@ -164,13 +191,25 @@ exports.customer = async (req, res, next) => {
   let customerName = [ ] 
   let orderCount = []
   const date = req.body.state
+  let startDateNew = new Date(date[0].startDate)
+    startDateNew.setHours(startDateNew.getHours() + 5)
+    startDateNew.setMinutes(startDateNew.getMinutes() + 30)
+
+    let endDateNew = new Date(date[0].endDate)
+    endDateNew.setDate(endDateNew.getDate() + 1)
+    endDateNew.setHours(endDateNew.getHours() + 5)
+    endDateNew.setMinutes(endDateNew.getMinutes() + 29)
+    endDateNew.setSeconds(59)
+    endDateNew.setMilliseconds(999)
+    console.log(endDateNew,startDateNew);
   try {
-    const orderedUsers = await Order.find({ dateOrder: { $gte: date[0].startDate, $lte: date[0].endDate }} )
-    .select('totalPrice user').where('status').equals('delivered')
+    const orderedUsers = await Order.find({ dateOrder: { $gte: startDateNew, $lte: endDateNew }} )
+      .select('totalPrice user').where('status').equals('delivered')
+    
     const customer = await Customer.find()
-    .select('_id firstName lastName')   
-    .where('status')
-    .equals('active')
+      .select('_id firstName lastName') 
+      .where('status')
+      .equals('active')
     let count = 0;
     if (orderedUsers.length > 0) {
       customerName = [ ]
