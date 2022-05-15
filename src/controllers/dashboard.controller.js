@@ -11,7 +11,6 @@ exports.dashboard = async (req, res, next) => {
   let data={}
   const date = new Date().toDateString()
   const tomorrow =new Date(new Date(date).getTime() + 60 * 60 * 24 * 1000);
-  console.log(date,date+1);
   try {
     const todayOrderCount = await Order.find({dateOrder: { $gte: date, $lte: tomorrow },status:'processing'}).count()
     const totalOrderCount = await Order.find(filter).count().where('isActive')

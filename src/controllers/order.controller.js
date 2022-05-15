@@ -1,16 +1,16 @@
 const httpStatus = require('http-status')
-const { mailService } = require("../services/mail");
+const { mailService } = require('../services/mail')
 const Product = require('../models/product.model')
 const Order = require('../models/order.model')
 const OrderItems = require('../models/order-Items.model')
 const DeliveryLocations = require('../models/deliveryArea.model')
-const Customer = require('../models/customer.model');
-const permission = require('../middlewares/permissionLevel');
+const Customer = require('../models/customer.model')
+const permission = require('../middlewares/permissionLevel')
 
 exports.create = async (req, res, next) => {
-  console.log(req.body);
-  const data = req.body.orderData;
-  const user = req.user.customerID;
+  console.log(req.body)
+  const data = req.body.orderData
+  const user = req.user.customerID
   try {
     const userDetails = await Customer.findById(user)
     if (userDetails) {
@@ -26,7 +26,9 @@ exports.create = async (req, res, next) => {
             .send('This order cannot create')
         }
       }
-      const deliveryFee = await DeliveryLocations.findById(req.body.data.city).select('price')
+      const deliveryFee = await DeliveryLocations.findById(
+        req.body.data.city,
+      ).select('price')
       // await DeliveryLocations.findById()
       const orderItemIDs = Promise.all(
         req.body.orderData.map(async (orderItem) => {
@@ -46,7 +48,6 @@ exports.create = async (req, res, next) => {
           })
           newOrderItem = await newOrderItem.save()
           return newOrderItem._id
-
         }),
       )
       const orderItemIDsResolved = await orderItemIDs
@@ -63,7 +64,7 @@ exports.create = async (req, res, next) => {
       const subTotalPrice = total.reduce((a, b) => a + b, 0)
       const totalPrice = subTotalPrice + Number(deliveryFee.price)
       //saving orders
-      console.log(req.user.customerID, 'll');
+      console.log(req.user.customerID, 'll')
       let order = new Order({
         orderItem: orderItemIDsResolved,
         shippingAddress: req.body.data.shippingAddress,
@@ -77,17 +78,25 @@ exports.create = async (req, res, next) => {
       })
 
       order = await order.save()
-      console.log(order, 'orde');
+      console.log(order, 'orde')
       if (order) {
-        console.log('hi');
-        mailService({ type: 'order-confirmation', subject: 'Order Confirmation', message: 'Thank you for placing your order with our store', email: userDetails.email, order_id: order._id });
+        console.log('hi')
+        mailService({
+          type: 'order-confirmation',
+          subject: 'Order Confirmation',
+          message: 'Thank you for placing your order with our store',
+          email: userDetails.email,
+          order_id: order._id,
+        })
         return res.status(httpStatus.CREATED).json({ order })
       } else {
-        return res.status(httpStatus.BAD_REQUEST).send('This order cannot create')
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .send('This order cannot create')
       }
     }
   } catch (error) {
-    console.log('error');
+    console.log('error')
     next(error)
   }
 }
@@ -109,7 +118,7 @@ exports.allOrders = async (req, res, next) => {
       .equals('true')
       .select('-__v')
       .sort({ dateOrder: -1 })
-    console.log(orderList.length);
+    console.log(orderList)
     if (!orderList)
       return res.status(httpStatus.NOT_FOUND).send('No data found')
     return res.status(httpStatus.OK).json({ orderList })
@@ -132,13 +141,19 @@ exports.search = async (req, res, next) => {
     endDateNew.setSeconds(59)
     endDateNew.setMilliseconds(999)
 
-    console.log(req.body.name);
+    console.log(req.body.name)
 
     //const orderList = await Order.find({ dateOrder: { $gte: startDateNew, $lte: endDateNew }, receiverName: req.body.name })
-    const orderList = await Order.find(req.body.name === undefined ?
-      {
-        dateOrder: { $gte: startDateNew, $lte: endDateNew } 
-      } : { dateOrder: { $gte: startDateNew, $lte: endDateNew }, receiverName: req.body.name })
+    const orderList = await Order.find(
+      req.body.name === undefined
+        ? {
+            dateOrder: { $gte: startDateNew, $lte: endDateNew },
+          }
+        : {
+            dateOrder: { $gte: startDateNew, $lte: endDateNew },
+            receiverName: req.body.name,
+          },
+    )
       .populate('user', 'firstName lastName')
       .populate({
         path: 'orderItem',
@@ -153,7 +168,7 @@ exports.search = async (req, res, next) => {
       .select('-__v')
       .sort({ dateOrder: -1 })
 
-    console.log(orderList);
+    console.log(orderList)
     if (!orderList)
       return res.status(httpStatus.NOT_FOUND).send('No data found')
     return res.status(httpStatus.OK).json({ orderList })
@@ -164,7 +179,7 @@ exports.search = async (req, res, next) => {
 
 exports.orderListByStatus = async (req, res, next) => {
   const filter = { status: req.params.status }
-  console.log(filter);
+  console.log(filter)
   try {
     const orderList = await Order.find(filter)
       .populate('user', 'firstName')
@@ -189,7 +204,7 @@ exports.orderListByStatus = async (req, res, next) => {
 }
 
 exports.update = async (req, res, next) => {
-
+  console.log(req.body)
   try {
     const order = await Order.findByIdAndUpdate(
       req.params.id,
@@ -213,13 +228,32 @@ exports.update = async (req, res, next) => {
     }
     if (order.user.email) {
       if (req.body.status === 'cancelled') {
-        mailService({ type: 'order-confirmation', subject: 'Order Cancellation', message: 'We are sorry. Your order is cancelled 😢😒', email: order.user.email, order_id: order._id });
+        mailService({
+          type: 'order-confirmation',
+          subject: 'Order Cancellation',
+          message: 'We are sorry. Your order is cancelled 😢😒',
+          email: order.user.email,
+          order_id: order._id,
+        })
         return res.status(httpStatus.OK).json({ order })
       } else if (req.body.status === 'shipped') {
-        mailService({ type: 'order-confirmation', subject: 'Order Shipped', message: 'Your order is on the way. Get ready🥳', email: order.user.email, order_id: order._id });
+        mailService({
+          type: 'order-confirmation',
+          subject: 'Order Shipped',
+          message: 'Your order is on the way. Get ready🥳',
+          email: order.user.email,
+          order_id: order._id,
+        })
         return res.status(httpStatus.OK).json({ order })
       } else if (req.body.status === 'delivered') {
-        mailService({ type: 'order-confirmation', subject: 'Order Delivered', message: 'Your order is delivered. Enjoy it and give us your valuable feedback', email: order.user.email, order_id: order._id });
+        mailService({
+          type: 'order-confirmation',
+          subject: 'Order Delivered',
+          message:
+            'Your order is delivered. Enjoy it and give us your valuable feedback',
+          email: order.user.email,
+          order_id: order._id,
+        })
         return res.status(httpStatus.OK).json({ order })
       }
     }
@@ -230,9 +264,9 @@ exports.update = async (req, res, next) => {
 
 exports.viewuserorder = async (req, res, next) => {
   try {
-    console.log((req.user, 'lll'));
+    console.log((req.user, 'lll'))
     const userOrder = await Order.find({
-      user: req.user.customerID
+      user: req.user.customerID,
     })
       .select('-__v')
       .populate('user', 'firstName address')
@@ -257,7 +291,7 @@ exports.viewuserorder = async (req, res, next) => {
   }
 }
 exports.viewAOwnOrder = async (req, res, next) => {
-  console.log((req.user, 'lo'));
+  console.log((req.user, 'lo'))
   try {
     const order = await Order.findById(req.params.id)
       .select('-__v')
@@ -279,24 +313,23 @@ exports.viewAOwnOrder = async (req, res, next) => {
       throw Error('Orders not found!!')
     }
     if (order) {
-      console.log(order.user._id.toString(), req.user.customerID);
+      console.log(order.user._id.toString(), req.user.customerID)
       if (order.user._id.toString() === req.user.customerID) {
         return res.status(httpStatus.OK).json({ order })
       } else {
         return res.status(httpStatus.UNAUTHORIZED).send('No data found')
       }
     }
-
   } catch (error) {
     next(error)
   }
 }
 exports.viewOrder = async (req, res, next) => {
-  console.log((req.user, 'lo'));
+  console.log((req.user, 'lo'))
   try {
     const order = await Order.findById(req.params.id)
       .select('-__v')
-      .populate('user', 'firstName address')
+      .populate('user', 'firstName address email phoneNumber')
       .populate('city', 'city price')
       .populate({
         path: 'orderItem',
@@ -310,6 +343,7 @@ exports.viewOrder = async (req, res, next) => {
       .equals('true')
       .select('-__v')
       .sort({ dateOrder: -1 })
+    console.log(order)
     if (!order) {
       throw Error('Orders not found!!')
     }
@@ -320,7 +354,7 @@ exports.viewOrder = async (req, res, next) => {
 }
 
 exports.count = async (req, res, next) => {
-  const filter = { 'status': 'processing' }
+  const filter = { status: 'processing' }
   try {
     Order.count(filter, function (err, count) {
       if (!count) return res.status(httpStatus.NOT_FOUND).send('No data found')

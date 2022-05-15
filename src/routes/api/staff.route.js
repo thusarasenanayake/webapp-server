@@ -6,7 +6,7 @@ const staffValidation = require('../../validations/staff.validation')
 const staffController = require('../../controllers/staff.controller')
 
 // create new user
-router.post('/', validate(staffValidation.create),staffController.create)
+router.post('/', validate(staffValidation.create), staffController.create)
 //  get all users data
 router.get('/listEmployee', staffController.listEmployee)
 //  get all admin data

@@ -1,10 +1,10 @@
 const Product = require('../models/product.model')
 const Category = require('../models/category.model')
-const httpStatus = require('http-status');
-const permission = require('../middlewares/permissionLevel');
+const httpStatus = require('http-status')
+const permission = require('../middlewares/permissionLevel')
 
 exports.create = async (req, res, next) => {
-  await permission(req.user, res, true);//admin
+  await permission(req.user, res, true) //admin
 
   console.log(req.body)
   try {
@@ -52,7 +52,8 @@ exports.list = async (req, res, next) => {
       .where('status')
       .equals('active')
       .select('-__v')
-      .populate({ path: 'category_id', model: Category }).sort('inStock')
+      .populate({ path: 'category_id', model: Category })
+      .sort('inStock')
     const products = await query.exec()
     return res.status(httpStatus.OK).json({ products })
   } catch (error) {
@@ -83,7 +84,7 @@ exports.update = async (req, res, next) => {
 }
 exports.delete = async (req, res, next) => {
   console.log(req.params.id, 'hi')
-  await permission(req.user, res, true);
+  await permission(req.user, res, true)
 
   try {
     const product = await Product.findByIdAndUpdate(

@@ -37,12 +37,16 @@ exports.create = async (req, res, next) => {
 }
 
 exports.update = async (req, res, next) => {
+  console.log(req.user, req.body)
   try {
-    const cusEmailID = await Customer.findOne({ email: req.body.email })
-    console.log(cusEmailID)
-    if (cusEmailID) {
+    const cusEmailID = await Customer.findOne({ email: req.body.email }).select(
+      '_id',
+    )
+    const cusID = await Customer.findById(req.user.customerID).select('_id')
+    console.log(cusEmailID, cusID)
+    if (cusEmailID.toString() === cusID.toString()) {
       const customer = await Customer.findByIdAndUpdate(
-        req.params.id,
+        req.user.customerID,
         {
           firstName: req.body.firstName,
           lastName: req.body.lastName,
@@ -53,8 +57,9 @@ exports.update = async (req, res, next) => {
       )
       if (!customer) {
         return res.status(httpStatus.NOT_FOUND).send('User not found!!')
+      } else {
+        return res.status(httpStatus.OK).json({ customer, success: true })
       }
-      return res.status(httpStatus.OK).json({ customer, success: true })
     } else {
       return res.status(httpStatus.UNPROCESSABLE_ENTITY).send('Can not Process')
     }
@@ -66,7 +71,7 @@ exports.update = async (req, res, next) => {
 exports.self = async (req, res, next) => {
   // console.log('ll');
   try {
-    const  id  = req.user.customerID
+    const id = req.user.customerID
     const customer = await Customer.findById(id)
       .where('status')
       .equals('active')
@@ -80,17 +85,47 @@ exports.self = async (req, res, next) => {
     next(error)
   }
 }
+
+exports.reset = async (req, res, next) => {
+  console.log(req.user.customerID)
+  try {
+    const user = await Customer.findById(req.user.customerID)
+      .where('status')
+      .equals('active')
+    console.log(user)
+    if (!user) {
+      return res.status(httpStatus.NOT_FOUND).send('User not found!!')
+    }
+    if (user && bcrypt.compareSync(req.body.current_password, user.password)) {
+      console.log('lo')
+      const customer = await Customer.findByIdAndUpdate(
+        req.user.customerID,
+        {
+          password: bcrypt.hashSync(req.body.password, 10),
+        },
+        { new: true },
+      )
+    } else {
+      return res
+        .status(httpStatus.UNPROCESSABLE_ENTITY)
+        .json('Password Not matched')
+    }
+    return res.status(httpStatus.OK).send('Password changed')
+  } catch (error) {
+    next(error)
+  }
+}
 // customer data view from staff end
 exports.view = async (req, res, next) => {
-  console.log('ll');
+  console.log('ll')
   try {
     const id = req.params.id
-    console.log(id);
+    console.log(id)
     const customer = await Customer.findById(id)
       .where('status')
       .equals('active')
       .select('firstName lastName email address phoneNumber')
-    console.log(customer);
+    console.log(customer)
     if (!customer) {
       throw Error('User not found!!')
     }

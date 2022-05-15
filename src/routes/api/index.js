@@ -27,5 +27,4 @@ router.use('/reset', resetPasswordRoute)
 router.use('/reports', reportsRoute)
 router.use('/search', searchRoute)
 
-
 module.exports = router

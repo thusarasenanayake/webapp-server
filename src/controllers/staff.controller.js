@@ -5,16 +5,16 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 
 exports.create = async (req, res, next) => {
-  console.log(req.body,'kkk')
+  console.log(req.body, 'kkk')
   try {
     const user = await Staff.findOne({ userName: req.body.userName })
     if (user) {
-      console.log(user);
+      console.log(user)
       return res
         .status(httpStatus.UNPROCESSABLE_ENTITY)
         .send('userName  Already exists!!')
     } else {
-      console.log('awa');
+      console.log('awa')
       const user = new Staff({
         firstName: req.body.firstName,
         lastName: req.body.lastName,
@@ -33,12 +33,12 @@ exports.create = async (req, res, next) => {
 exports.update = async (req, res, next) => {
   try {
     console.log(req.body, 'body')
-    const user = await Staff.findById(req.params.id)   
-    .where('status')
-    .equals('active')
-    console.log(user);
-    if(user){
-      if(user.userName === req.body.userName){
+    const user = await Staff.findById(req.params.id)
+      .where('status')
+      .equals('active')
+    console.log(user)
+    if (user) {
+      if (user.userName === req.body.userName) {
         const staff = await Staff.findByIdAndUpdate(
           req.params.id,
           {
@@ -47,28 +47,28 @@ exports.update = async (req, res, next) => {
           },
           { new: true },
         )
-       return res.status(httpStatus.OK).json({ user, success: true })
-
-      }else{
-        const user = await Staff.findOne({ userName: req.body.userName })
-        if(!user){  
-          const staff = await Staff.findByIdAndUpdate(
-          req.params.id,
-          {
-            userName: req.body.userName,
-            firstName: req.body.firstName,
-            lastName: req.body.lastName,
-          },
-          { new: true },
-        )
         return res.status(httpStatus.OK).json({ user, success: true })
-      }
-      else{
-       return res.status(httpStatus.UNPROCESSABLE_ENTITY).send('Already exist')
-      }
+      } else {
+        const user = await Staff.findOne({ userName: req.body.userName })
+        if (!user) {
+          const staff = await Staff.findByIdAndUpdate(
+            req.params.id,
+            {
+              userName: req.body.userName,
+              firstName: req.body.firstName,
+              lastName: req.body.lastName,
+            },
+            { new: true },
+          )
+          return res.status(httpStatus.OK).json({ user, success: true })
+        } else {
+          return res
+            .status(httpStatus.UNPROCESSABLE_ENTITY)
+            .send('Already exist')
+        }
       }
     }
-   
+
     if (!user) {
       return res.status(httpStatus.NOT_FOUND).send('User not found!!')
     }
@@ -79,29 +79,27 @@ exports.update = async (req, res, next) => {
 }
 
 exports.reset = async (req, res, next) => {
-  console.log(req.body,'kkk')
+  console.log(req.body, 'kkk')
   try {
-    const user = await Staff.findById(req.params.id)   
-    .where('status')
-    .equals('active')
+    const user = await Staff.findById(req.params.id)
+      .where('status')
+      .equals('active')
     if (!user) {
-          return res.status(httpStatus.NOT_FOUND).send('User not found!!')
-        }
-      if (user && bcrypt.compareSync(req.body.current_password, user.password)){
-        console.log('lo');
-        const staff = await Staff.findByIdAndUpdate(
-          req.params.id,
-          {
+      return res.status(httpStatus.NOT_FOUND).send('User not found!!')
+    }
+    if (user && bcrypt.compareSync(req.body.current_password, user.password)) {
+      console.log('lo')
+      const staff = await Staff.findByIdAndUpdate(
+        req.params.id,
+        {
           password: bcrypt.hashSync(req.body.password, 10),
-          },
-          { new: true },
-      )}else{
-      return res.status(httpStatus.NOT_FOUND).json("Password Not matched")
-      }
-      return res
-        .status(httpStatus.OK)
-        .send('Password changed')
-  
+        },
+        { new: true },
+      )
+    } else {
+      return res.status(httpStatus.NOT_FOUND).json('Password Not matched')
+    }
+    return res.status(httpStatus.OK).send('Password changed')
   } catch (error) {
     next(error)
   }
@@ -141,7 +139,7 @@ exports.view = async (req, res, next) => {
 }
 
 exports.login = async (req, res, next) => {
-  console.log(req.body,'lll');
+  console.log(req.body, 'lll')
   try {
     const user = await Staff.findOne({ userName: req.body.userName })
       .where('status')

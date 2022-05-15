@@ -7,8 +7,8 @@ const httpStatus = require('http-status')
 
 exports.category = async (req, res, next) => {
   try {
-      const name = req.body.searchData
-      const categories = await Category.find({ categoryName: name })
+    const name = req.body.searchData
+    const categories = await Category.find({ categoryName: name })
       .where('status')
       .equals('active')
       .select('categoryName')
@@ -22,8 +22,8 @@ exports.category = async (req, res, next) => {
 }
 exports.product = async (req, res, next) => {
   try {
-      const name = req.body.searchData
-      const products = await Product.find({ productName: name })
+    const name = req.body.searchData
+    const products = await Product.find({ productName: name })
       .where('status')
       .equals('active')
       .select('productName inStock price')
@@ -53,11 +53,12 @@ exports.location = async (req, res, next) => {
 exports.customer = async (req, res, next) => {
   try {
     const name = req.body.searchData
-   const customers = await Customer.find({$or:[{firstName:name},{lastName :name}]})
+    const customers = await Customer.find({
+      $or: [{ firstName: name }, { lastName: name }],
+    })
       .where('status')
       .equals('active')
       .select('firstName lastName email address phoneNumber')
-    console.log(customers);
     if (!customers) {
       throw Error('User not found!!')
     }
@@ -69,11 +70,12 @@ exports.customer = async (req, res, next) => {
 exports.employee = async (req, res, next) => {
   try {
     const name = req.body.searchData
-   const employees = await Staff.find({$or:[{firstName:name},{lastName :name}]})
+    const employees = await Staff.find({
+      $or: [{ firstName: name }, { lastName: name }],
+    })
       .where('status')
       .equals('active')
       .select('firstName lastName userName  isAdmin')
-    console.log(employees);
     if (!employees) {
       throw Error('User not found!!')
     }
