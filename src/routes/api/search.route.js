@@ -8,5 +8,6 @@ router.post('/product', searchController.product)
 router.post('/delivery', searchController.location)
 router.post('/customer', searchController.customer)
 router.post('/employee', searchController.employee)
+router.post('/order', searchController.order)
 
 module.exports = router

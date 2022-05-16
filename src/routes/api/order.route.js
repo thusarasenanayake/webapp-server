@@ -4,8 +4,6 @@ const router = express.Router()
 const orderController = require('../../controllers/order.controller')
 
 router.post('/', orderController.create)
-router.post('/search', orderController.search)
-
 router.put('/:id', orderController.update)
 router.get('/list', orderController.allOrders)
 router.get('/list/:status', orderController.orderListByStatus)

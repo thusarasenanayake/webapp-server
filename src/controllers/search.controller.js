@@ -7,8 +7,15 @@ const httpStatus = require('http-status')
 
 exports.category = async (req, res, next) => {
   try {
+    let filter = {}
     const name = req.body.searchData
-    const categories = await Category.find({ categoryName: name })
+    if (name !== undefined && name !== null) {
+      filter.categoryName = {
+        $regex: '.*' + name + '.*',
+        $options: 'i',
+      }
+    }
+    const categories = await Category.find(filter)
       .where('status')
       .equals('active')
       .select('categoryName')
@@ -22,8 +29,15 @@ exports.category = async (req, res, next) => {
 }
 exports.product = async (req, res, next) => {
   try {
+    let filter = {}
     const name = req.body.searchData
-    const products = await Product.find({ productName: name })
+    if (name !== undefined && name !== null) {
+      filter.productName = {
+        $regex: '.*' + name + '.*',
+        $options: 'i',
+      }
+    }
+    const products = await Product.find(filter)
       .where('status')
       .equals('active')
       .select('productName inStock price')
@@ -37,8 +51,15 @@ exports.product = async (req, res, next) => {
 }
 exports.location = async (req, res, next) => {
   try {
+    let filter = {}
     const name = req.body.searchData
-    const cities = await Location.find({ city: name })
+    if (name !== undefined && name !== null) {
+      filter.city = {
+        $regex: '.*' + name + '.*',
+        $options: 'i',
+      }
+    }
+    const cities = await Location.find(filter)
       .where('status')
       .ne('deleted')
       .select('city price status')
@@ -52,9 +73,20 @@ exports.location = async (req, res, next) => {
 }
 exports.customer = async (req, res, next) => {
   try {
+    let filter = {}
     const name = req.body.searchData
+    if (name !== undefined && name !== null) {
+      filter.firstName = {
+        $regex: '.*' + name + '.*',
+        $options: 'i',
+      }
+      filter.lastName = {
+        $regex: '.*' + name + '.*',
+        $options: 'i',
+      }
+    }
     const customers = await Customer.find({
-      $or: [{ firstName: name }, { lastName: name }],
+      $or: [{ firstName: filter.firstName }, { lastName: filter.lastName }],
     })
       .where('status')
       .equals('active')
@@ -69,9 +101,20 @@ exports.customer = async (req, res, next) => {
 }
 exports.employee = async (req, res, next) => {
   try {
+    let filter = {}
     const name = req.body.searchData
+    if (name !== undefined && name !== null) {
+      filter.firstName = {
+        $regex: '.*' + name + '.*',
+        $options: 'i',
+      }
+      filter.lastName = {
+        $regex: '.*' + name + '.*',
+        $options: 'i',
+      }
+    }
     const employees = await Staff.find({
-      $or: [{ firstName: name }, { lastName: name }],
+      $or: [{ firstName: filter.firstName }, { lastName: filter.lastName }],
     })
       .where('status')
       .equals('active')
@@ -80,6 +123,53 @@ exports.employee = async (req, res, next) => {
       throw Error('User not found!!')
     }
     return res.status(httpStatus.OK).json({ employees })
+  } catch (error) {
+    next(error)
+  }
+}
+exports.order = async (req, res, next) => {
+  const date = req.body.state
+
+  try {
+    let startDateNew = new Date(date[0].startDate)
+    startDateNew.setHours(startDateNew.getHours() + 5)
+    startDateNew.setMinutes(startDateNew.getMinutes() + 30)
+
+    let endDateNew = new Date(date[0].endDate)
+    endDateNew.setDate(endDateNew.getDate() + 1)
+    endDateNew.setHours(endDateNew.getHours() + 5)
+    endDateNew.setMinutes(endDateNew.getMinutes() + 29)
+    endDateNew.setSeconds(59)
+    endDateNew.setMilliseconds(999)
+
+    let filter = { dateOrder: { $gte: startDateNew, $lte: endDateNew } }
+
+    if (req.body.name !== undefined && req.body.name !== null) {
+      filter.receiverName = {
+        $regex: '.*' + req.body.name + '.*',
+        $options: 'i',
+      }
+    }
+    //const orderList = await Order.find({ dateOrder: { $gte: startDateNew, $lte: endDateNew }, receiverName: req.body.name })
+    const orderList = await Order.find(filter)
+      .populate('user', 'firstName lastName')
+      .populate({
+        path: 'orderItem',
+        populate: {
+          path: 'product',
+          select: 'productName',
+          populate: { path: 'category_id', select: 'categoryName' },
+        },
+      })
+      .where('isActive')
+      .equals('true')
+      .select('-__v')
+      .sort({ dateOrder: -1 })
+
+    console.log(orderList)
+    if (!orderList)
+      return res.status(httpStatus.NOT_FOUND).send('No data found')
+    return res.status(httpStatus.OK).json({ orderList })
   } catch (error) {
     next(error)
   }

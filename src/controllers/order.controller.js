@@ -126,56 +126,7 @@ exports.allOrders = async (req, res, next) => {
     next(error)
   }
 }
-exports.search = async (req, res, next) => {
-  const date = req.body.state
-  const filter = { receiverName: req.body.name }
-  try {
-    let startDateNew = new Date(date[0].startDate)
-    startDateNew.setHours(startDateNew.getHours() + 5)
-    startDateNew.setMinutes(startDateNew.getMinutes() + 30)
 
-    let endDateNew = new Date(date[0].endDate)
-    endDateNew.setDate(endDateNew.getDate() + 1)
-    endDateNew.setHours(endDateNew.getHours() + 5)
-    endDateNew.setMinutes(endDateNew.getMinutes() + 29)
-    endDateNew.setSeconds(59)
-    endDateNew.setMilliseconds(999)
-
-    console.log(req.body.name)
-
-    //const orderList = await Order.find({ dateOrder: { $gte: startDateNew, $lte: endDateNew }, receiverName: req.body.name })
-    const orderList = await Order.find(
-      req.body.name === undefined
-        ? {
-            dateOrder: { $gte: startDateNew, $lte: endDateNew },
-          }
-        : {
-            dateOrder: { $gte: startDateNew, $lte: endDateNew },
-            receiverName: req.body.name,
-          },
-    )
-      .populate('user', 'firstName lastName')
-      .populate({
-        path: 'orderItem',
-        populate: {
-          path: 'product',
-          select: 'productName',
-          populate: { path: 'category_id', select: 'categoryName' },
-        },
-      })
-      .where('isActive')
-      .equals('true')
-      .select('-__v')
-      .sort({ dateOrder: -1 })
-
-    console.log(orderList)
-    if (!orderList)
-      return res.status(httpStatus.NOT_FOUND).send('No data found')
-    return res.status(httpStatus.OK).json({ orderList })
-  } catch (error) {
-    next(error)
-  }
-}
 
 exports.orderListByStatus = async (req, res, next) => {
   const filter = { status: req.params.status }
