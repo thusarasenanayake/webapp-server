@@ -29,7 +29,6 @@ exports.category = async (req, res, next) => {
   }
 }
 exports.product = async (req, res, next) => {
-  console.log('hi')
   try {
     let filter = {}
     const name = req.body.searchData
@@ -131,7 +130,6 @@ exports.employee = async (req, res, next) => {
 }
 exports.order = async (req, res, next) => {
   const date = req.body.state
-  console.log(req.body, 'lll')
 
   try {
     let startDateNew = new Date(date[0].startDate)
@@ -169,7 +167,6 @@ exports.order = async (req, res, next) => {
       .select('-__v')
       .sort({ dateOrder: -1 })
 
-    console.log(orderList, filter)
     if (!orderList)
       return res.status(httpStatus.NOT_FOUND).send('No data found')
     return res.status(httpStatus.OK).json({ orderList })
