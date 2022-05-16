@@ -3,6 +3,7 @@ const Product = require('../models/product.model')
 const Location = require('../models/deliveryArea.model')
 const Customer = require('../models/customer.model')
 const Staff = require('../models/staff.model')
+const Order = require('../models/order.model')
 const httpStatus = require('http-status')
 
 exports.category = async (req, res, next) => {
@@ -28,6 +29,7 @@ exports.category = async (req, res, next) => {
   }
 }
 exports.product = async (req, res, next) => {
+  console.log('hi')
   try {
     let filter = {}
     const name = req.body.searchData
@@ -129,6 +131,7 @@ exports.employee = async (req, res, next) => {
 }
 exports.order = async (req, res, next) => {
   const date = req.body.state
+  console.log(req.body, 'lll')
 
   try {
     let startDateNew = new Date(date[0].startDate)
@@ -144,9 +147,9 @@ exports.order = async (req, res, next) => {
 
     let filter = { dateOrder: { $gte: startDateNew, $lte: endDateNew } }
 
-    if (req.body.name !== undefined && req.body.name !== null) {
+    if (req.body.searchData !== undefined && req.body.searchData !== null) {
       filter.receiverName = {
-        $regex: '.*' + req.body.name + '.*',
+        $regex: '.*' + req.body.searchData + '.*',
         $options: 'i',
       }
     }
@@ -166,7 +169,7 @@ exports.order = async (req, res, next) => {
       .select('-__v')
       .sort({ dateOrder: -1 })
 
-    console.log(orderList)
+    console.log(orderList, filter)
     if (!orderList)
       return res.status(httpStatus.NOT_FOUND).send('No data found')
     return res.status(httpStatus.OK).json({ orderList })
