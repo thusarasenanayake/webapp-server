@@ -3,9 +3,22 @@ module.exports = {
   create: {
     body: Joi.object({
       _id: Joi.forbidden(),
-      productName: Joi.string().required().regex(/^[a-zA-Z ]+$/),
+      productName: Joi.string()
+        .required()
+        .regex(/^[a-zA-Z ]+$/),
       price: Joi.number().required(),
       category_id: Joi.string().required(),
+      inStock: Joi.number().required(),
+    }),
+  },
+  update: {
+    body: Joi.object({
+      _id: Joi.forbidden(),
+      productName: Joi.string()
+        .required()
+        .regex(/^[a-zA-Z ]+$/),
+      price: Joi.number().required(),
+      category_id: { _id: Joi.string().required() },
       inStock: Joi.number().required(),
     }),
   },

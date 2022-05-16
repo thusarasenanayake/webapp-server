@@ -31,8 +31,8 @@ exports.view = async (req, res, next) => {
   try {
     const { id } = req.params
     const product = await Product.findById(id)
-      .select('-__v')
-      .populate({ path: 'category_id', model: Category })
+      .select('-__v -status -createdAt -updatedAt -isAvailable')
+      .populate({ path: 'category_id', model: Category, select: '_id' })
     if (!product) {
       throw Error('Product not found!!')
     }
@@ -51,7 +51,7 @@ exports.list = async (req, res, next) => {
     const query = Product.find(filter)
       .where('status')
       .equals('active')
-      .select('-__v')
+      .select('-__v -createdAt -updatedAt -isAvailable')
       .populate({ path: 'category_id', model: Category })
       .sort('inStock')
     const products = await query.exec()
@@ -63,6 +63,7 @@ exports.list = async (req, res, next) => {
 
 //update countStocks, instock status and price
 exports.update = async (req, res, next) => {
+  console.log(req.body, 'll')
   try {
     const product = await Product.findByIdAndUpdate(
       req.params.id,
@@ -84,6 +85,7 @@ exports.update = async (req, res, next) => {
 }
 exports.delete = async (req, res, next) => {
   console.log(req.params.id, 'hi')
+  console.log(req.user)
   await permission(req.user, res, true)
 
   try {
