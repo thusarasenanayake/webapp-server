@@ -10,6 +10,7 @@ exports.update = async (req, res, next) => {
 
     let isMatched = false
     const customer = await Customer.findById(id)
+    console.log(customer)
     const product = await Product.findById(data.productID).select('inStock')
 
     if (product.inStock < data.quantity) {

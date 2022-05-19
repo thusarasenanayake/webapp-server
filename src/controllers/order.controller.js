@@ -5,95 +5,96 @@ const Order = require('../models/order.model')
 const OrderItems = require('../models/order-Items.model')
 const DeliveryLocations = require('../models/deliveryArea.model')
 const Customer = require('../models/customer.model')
-const permission = require('../middlewares/permissionLevel')
 
 exports.create = async (req, res, next) => {
-  console.log(req.body)
   const data = req.body.orderData
   const user = req.user.customerID
   try {
     const userDetails = await Customer.findById(user)
-    if (userDetails) {
-      for (let i = 0; i < data.length; i++) {
-        const productStock = await Product.findById(data[i].productID)
-          .where('inStock')
-          .gte(data[i].quantity)
-          .populate('_id')
+    if (!userDetails) {
+      return res.status(httpStatus.NOT_FOUND).send('user not found!!!')
+    }
 
-        if (productStock === null) {
-          return res
-            .status(httpStatus.BAD_REQUEST)
-            .send('This order cannot create')
-        }
-      }
-      const deliveryFee = await DeliveryLocations.findById(
-        req.body.data.city,
-      ).select('price')
-      // await DeliveryLocations.findById()
-      const orderItemIDs = Promise.all(
-        req.body.orderData.map(async (orderItem) => {
-          let itemCount = await Product.findById(orderItem.productID).populate(
-            '_id',
-          )
-          await Product.findByIdAndUpdate(
-            orderItem.productID,
-            {
-              inStock: itemCount.inStock - orderItem.quantity,
-            },
-            { new: true },
-          )
-          let newOrderItem = new OrderItems({
-            quantity: orderItem.quantity,
-            product: orderItem.productID,
-          })
-          newOrderItem = await newOrderItem.save()
-          return newOrderItem._id
-        }),
-      )
-      const orderItemIDsResolved = await orderItemIDs
+    for (let i = 0; i < data.length; i++) {
+      const productStock = await Product.findById(data[i].productID)
+        .where('inStock')
+        .gte(data[i].quantity)
+        .populate('_id')
 
-      //calculating total price from backend database
-      const total = await Promise.all(
-        orderItemIDsResolved.map(async (index) => {
-          const orderItem = await OrderItems.findById(index).populate('product')
-          const totalPrice = orderItem.product.price * orderItem.quantity
-          return totalPrice
-        }),
-      )
-      //merg array of total prices and get sum of all prices {=+orderitem*qty}[a+b+c]
-      const subTotalPrice = total.reduce((a, b) => a + b, 0)
-      const totalPrice = subTotalPrice + Number(deliveryFee.price)
-      //saving orders
-      console.log(req.user.customerID, 'll')
-      let order = new Order({
-        orderItem: orderItemIDsResolved,
-        shippingAddress: req.body.data.shippingAddress,
-        city: req.body.data.city,
-        phoneNumber: req.body.data.phoneNumber,
-        user: req.user.customerID,
-        landmark: req.body.data.landmark,
-        subTotalPrice: subTotalPrice,
-        totalPrice: totalPrice,
-        receiverName: req.body.data.receiverName,
-      })
-
-      order = await order.save()
-      console.log(order, 'orde')
-      if (order) {
-        console.log('hi')
-        mailService({
-          type: 'order-confirmation',
-          subject: 'Order Confirmation',
-          message: 'Thank you for placing your order with our store',
-          email: userDetails.email,
-          order_id: order._id,
-        })
-        return res.status(httpStatus.CREATED).json({ order })
-      } else {
+      if (productStock === null) {
         return res
           .status(httpStatus.BAD_REQUEST)
           .send('This order cannot create')
       }
+    }
+
+    const deliveryFee = await DeliveryLocations.findById(
+      req.body.data.city,
+    ).select('price')
+
+    const orderItemIDs = Promise.all(
+      req.body.orderData.map(async (orderItem) => {
+        let itemCount = await Product.findById(orderItem.productID).populate(
+          '_id',
+        )
+        await Product.findByIdAndUpdate(
+          orderItem.productID,
+          {
+            inStock: itemCount.inStock - orderItem.quantity,
+          },
+          { new: true },
+        )
+        let newOrderItem = new OrderItems({
+          quantity: orderItem.quantity,
+          product: orderItem.productID,
+        })
+        newOrderItem = await newOrderItem.save()
+        return newOrderItem._id
+      }),
+    )
+    const orderItemIDsResolved = await orderItemIDs
+    const orderNum = await Order.find({})
+      .sort({ orderNumber: -1 })
+      .limit(1)
+      .select('orderNumber')
+    console.log(orderNum[0].orderNumber, 'ji')
+    //calculating total price from backend database
+    const total = await Promise.all(
+      orderItemIDsResolved.map(async (index) => {
+        const orderItem = await OrderItems.findById(index).populate('product')
+        const totalPrice = orderItem.product.price * orderItem.quantity
+        return totalPrice
+      }),
+    )
+    //merg array of total prices and get sum of all prices {=+orderitem*qty}[a+b+c]
+    const subTotalPrice = total.reduce((a, b) => a + b, 0)
+    const totalPrice = subTotalPrice + Number(deliveryFee.price)
+    //saving orders
+    let order = new Order({
+      orderNumber: orderNum[0].orderNumber + 1,
+      orderItem: orderItemIDsResolved,
+      shippingAddress: req.body.data.shippingAddress,
+      city: req.body.data.city,
+      phoneNumber: req.body.data.phoneNumber,
+      user: req.user.customerID,
+      landmark: req.body.data.landmark,
+      subTotalPrice: subTotalPrice,
+      totalPrice: totalPrice,
+      receiverName: req.body.data.receiverName,
+    })
+
+    order = await order.save()
+    if (order) {
+      mailService({
+        type: 'order-confirmation',
+        subject: 'Order Confirmation',
+        message: 'Thank you for placing your order with our store',
+        email: userDetails.email,
+        order_id: order._id,
+      })
+      return res.status(httpStatus.CREATED).json({ order })
+    } else {
+      return res.status(httpStatus.BAD_REQUEST).send('This order cannot create')
     }
   } catch (error) {
     console.log('error')
@@ -118,7 +119,6 @@ exports.allOrders = async (req, res, next) => {
       .equals('true')
       .select('-__v')
       .sort({ dateOrder: -1 })
-    console.log(orderList)
     if (!orderList)
       return res.status(httpStatus.NOT_FOUND).send('No data found')
     return res.status(httpStatus.OK).json({ orderList })
@@ -126,7 +126,6 @@ exports.allOrders = async (req, res, next) => {
     next(error)
   }
 }
-
 
 exports.orderListByStatus = async (req, res, next) => {
   const filter = { status: req.params.status }
@@ -155,7 +154,8 @@ exports.orderListByStatus = async (req, res, next) => {
 }
 
 exports.update = async (req, res, next) => {
-  console.log(req.body)
+  console.log(req.body.status)
+  console.log('status')
   try {
     const order = await Order.findByIdAndUpdate(
       req.params.id,
@@ -170,12 +170,36 @@ exports.update = async (req, res, next) => {
         path: 'orderItem',
         populate: {
           path: 'product',
-          select: 'productName',
-          populate: { path: 'category_id', select: 'categoryName' },
+          select: 'productName inStock',
+          // populate: { path: 'category_id', select: 'categoryName' },
         },
       })
     if (!order) {
       return res.status(httpStatus.NOT_FOUND).send('Order not found!!')
+    }
+    if (req.body.status === 'cancelled') {
+      const product = await Product.find({}).select('inStock')
+      const res = order.orderItem.filter((order) =>
+        product.find(
+          (product) => product._id.toString() === order.product._id.toString(),
+        ),
+      )
+      for (key in res) {
+        let stocks = 0
+        let id = res[key].product._id.toString()
+        let product = await Product.findById(id)
+        console.log(res[key])
+        stocks = res[key].quantity + product.inStock
+        console.log(stocks)
+        let productUpdated = await Product.findByIdAndUpdate(
+          id,
+          {
+            inStock: stocks,
+          },
+          { new: true },
+        )
+        console.log(productUpdated, 'productUpdated')
+      }
     }
     if (order.user.email) {
       if (req.body.status === 'cancelled') {
@@ -202,6 +226,15 @@ exports.update = async (req, res, next) => {
           subject: 'Order Delivered',
           message:
             'Your order is delivered. Enjoy it and give us your valuable feedback',
+          email: order.user.email,
+          order_id: order._id,
+        })
+        return res.status(httpStatus.OK).json({ order })
+      } else if (req.body.status === 'processing') {
+        mailService({
+          type: 'order-confirmation',
+          subject: 'Order Accepted',
+          message: 'Your order is processing. Be ready to enjoy',
           email: order.user.email,
           order_id: order._id,
         })

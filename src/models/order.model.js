@@ -12,6 +12,10 @@ const orderSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+  orderNumber: {
+    type: Number,
+    // default: 0,
+  },
   city: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'deliveryArea',
@@ -23,7 +27,7 @@ const orderSchema = mongoose.Schema({
   },
   status: {
     type: String,
-    default: 'processing',
+    default: 'pending',
   },
   totalPrice: {
     type: Number,

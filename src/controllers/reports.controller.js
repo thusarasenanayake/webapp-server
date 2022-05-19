@@ -29,32 +29,10 @@ function bubbleSort(arr1, arr2) {
   }
   console.log(arr1, arr2)
 }
-function sortArray(arr) {
-  console.log(arr)
-  var i, j
-  let isSwapped = false
-  for (i = 0; i < arr.length; i++) {
-    isSwapped = false
-    for (j = 0; j < arr.length; j++) {
-      if (arr[j][2] < arr[j + 1][2]) {
-        var temp1 = arr[j]
-        arr[j] = arr[j + 1]
-        arr[j + 1] = temp1
-
-        isSwapped = true
-      }
-    }
-    if (!isSwapped) {
-      break
-    }
-  }
-}
 
 exports.income = async (req, res, next) => {
   await permission(req.user, res, true) //admin
 
-  let totalPrice = []
-  let dateArray = []
   const date = req.body.state
   let startDateNew = new Date(date[0].startDate)
   startDateNew.setHours(startDateNew.getHours() + 5)
@@ -77,12 +55,12 @@ exports.income = async (req, res, next) => {
       // Use UTC date to prevent problems with time zones and DST
       currentDate.setUTCDate(currentDate.getUTCDate() + steps)
     }
-
     return dateArray
   }
   const dates = dateRange(startDateNew, endDateNew)
 
   try {
+    let totalIncome = []
     for (let i = 0; i < dates.length; i++) {
       var orders = await Order.find({
         dateOrder: { $gte: dates[i], $lte: dates[i + 1] },
@@ -94,11 +72,12 @@ exports.income = async (req, res, next) => {
       for (let j = 0; j < orders.length; j++) {
         price += orders[j].totalPrice
       }
-      totalPrice.push(price)
-      dateArray.push(dates[i].toDateString())
+      if (price !== 0) {
+        totalIncome.push([dates[i].toDateString(), price])
+      }
     }
     if (!orders) return res.status(httpStatus.NOT_FOUND).send('No data found')
-    return res.status(httpStatus.OK).json({ dateArray, totalPrice })
+    return res.status(httpStatus.OK).json({ totalIncome })
   } catch (error) {
     next(error)
   }
@@ -108,7 +87,6 @@ exports.productIncome = async (req, res, next) => {
   await permission(req.user, res, true) //admin
 
   let products = []
-  let productCount = []
   let orderItem = []
   const date = req.body.state
   let startDateNew = new Date(date[0].startDate)
@@ -122,17 +100,15 @@ exports.productIncome = async (req, res, next) => {
   endDateNew.setSeconds(59)
   endDateNew.setMilliseconds(999)
   try {
-    console.log(startDateNew, endDateNew)
-
-    const orderItems = await Order.find({
+    const orders = await Order.find({
       dateOrder: { $gte: startDateNew, $lte: endDateNew },
     })
       .select('orderItem')
       .where('status')
       .equals('delivered')
-    for (let j = 0; j < orderItems.length; j++) {
-      for (let i = 0; i < orderItems[j].orderItem.length; i++) {
-        let id = orderItems[j].orderItem[i].toString()
+    for (let j = 0; j < orders.length; j++) {
+      for (let i = 0; i < orders[j].orderItem.length; i++) {
+        let id = orders[j].orderItem[i].toString()
         let orderListArray = await OrderItems.findById(id)
           .populate('product', 'productName')
           .select('quantity')
@@ -146,7 +122,6 @@ exports.productIncome = async (req, res, next) => {
     let count = 0
     if (orderItem.length > 0) {
       for (let j = 0; j < productList.length; j++) {
-        products.push([productList[j].productName, productList[j].price])
         count = 0
         for (let i = 0; i < orderItem.length; i++) {
           if (
@@ -156,13 +131,16 @@ exports.productIncome = async (req, res, next) => {
             count = count + orderItem[i].quantity
           }
         }
-        // productCount.push(count)
-        products[j].push(count)
+        if (count !== 0) {
+          products.push([
+            productList[j].productName,
+            productList[j].price,
+            count,
+          ])
+        }
       }
     }
-    // sortArray(products)
-    if (!orderItems)
-      return res.status(httpStatus.NOT_FOUND).send('No data found')
+    if (!orders) return res.status(httpStatus.NOT_FOUND).send('No data found')
     return res.status(httpStatus.OK).json({ products })
   } catch (error) {
     next(error)
@@ -173,7 +151,7 @@ exports.delivery = async (req, res, next) => {
   await permission(req.user, res, true) //admin
 
   let cityName = []
-  let cityCount = []
+  let cityDetails = []
   const date = req.body.state
   let startDateNew = new Date(date[0].startDate)
   startDateNew.setHours(startDateNew.getHours() + 5)
@@ -185,9 +163,7 @@ exports.delivery = async (req, res, next) => {
   endDateNew.setMinutes(endDateNew.getMinutes() + 29)
   endDateNew.setSeconds(59)
   endDateNew.setMilliseconds(999)
-  console.log(endDateNew, startDateNew)
   try {
-    console.log(date[0].startDate, date[0].endDate)
     const orderedCity = await Order.find({
       dateOrder: { $gte: startDateNew, $lte: endDateNew },
     })
@@ -208,25 +184,24 @@ exports.delivery = async (req, res, next) => {
             count = count + 1
           }
         }
-        cityCount.push(count)
-        cityName[j].push(count)
+        cityDetails.push([cities[j].city, count])
       }
     }
-    bubbleSort(cityCount, cityName)
-    console.log(cityName)
+    // bubbleSort(cityCount, cityName)
     if (!orderedCity || !cities)
       return res.status(httpStatus.NOT_FOUND).send('No data found')
-    return res.status(httpStatus.OK).json({ cityCount, cityName })
+    return res.status(httpStatus.OK).json(cityDetails)
   } catch (error) {
     next(error)
   }
 }
 
-exports.products = async (req, res, next) => {
+exports.popularProducts = async (req, res, next) => {
   await permission(req.user, res, true) //admin
 
   let productNm = []
   let productCount = []
+  let productDetails = []
   let orderItem = []
   const date = req.body.state
   let startDateNew = new Date(date[0].startDate)
@@ -274,12 +249,12 @@ exports.products = async (req, res, next) => {
           }
         }
         productCount.push(count)
+        productDetails.push([productList[j].productName, count])
       }
     }
-    bubbleSort(productCount, productNm)
     if (!orderItems)
       return res.status(httpStatus.NOT_FOUND).send('No data found')
-    return res.status(httpStatus.OK).json({ productCount, productNm })
+    return res.status(httpStatus.OK).json(productDetails)
   } catch (error) {
     next(error)
   }
@@ -339,11 +314,11 @@ exports.customer = async (req, res, next) => {
         orderCount.push(count)
       }
     }
-    bubbleSort(orderCount, customers)
 
+    // bubbleSort(orderCount, customers)
     if (!orderedUsers || !customer)
       return res.status(httpStatus.NOT_FOUND).send('No data found')
-    return res.status(httpStatus.OK).json({ orderCount, customers })
+    return res.status(httpStatus.OK).json(customers)
   } catch (error) {
     next(error)
   }

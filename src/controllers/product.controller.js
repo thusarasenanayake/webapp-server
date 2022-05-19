@@ -10,6 +10,10 @@ exports.create = async (req, res, next) => {
   try {
     const categoryID = req.body.category_id
     const category = await Category.findById(categoryID)
+    const product = await Product.findOne({ productName: req.body.productName })
+    if (product) {
+      return res.status(httpStatus.CONFLICT).json('Already exits')
+    }
     if (!category) {
       return res.status(httpStatus.BAD_REQUEST).json('Invalid Category')
     } else {
@@ -63,7 +67,6 @@ exports.list = async (req, res, next) => {
 
 //update countStocks, instock status and price
 exports.update = async (req, res, next) => {
-  console.log(req.body, 'll')
   try {
     const product = await Product.findByIdAndUpdate(
       req.params.id,
