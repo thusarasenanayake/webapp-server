@@ -57,7 +57,6 @@ exports.create = async (req, res, next) => {
       .sort({ orderNumber: -1 })
       .limit(1)
       .select('orderNumber')
-    console.log(orderNum[0].orderNumber, 'ji')
     //calculating total price from backend database
     const total = await Promise.all(
       orderItemIDsResolved.map(async (index) => {
@@ -76,7 +75,7 @@ exports.create = async (req, res, next) => {
       shippingAddress: req.body.data.shippingAddress,
       city: req.body.data.city,
       phoneNumber: req.body.data.phoneNumber,
-      user: req.user.customerID,
+      orderedUser: req.user.customerID,
       landmark: req.body.data.landmark,
       subTotalPrice: subTotalPrice,
       totalPrice: totalPrice,
@@ -106,7 +105,7 @@ exports.allOrders = async (req, res, next) => {
   const filter = {}
   try {
     const orderList = await Order.find(filter)
-      .populate('user', 'firstName lastName')
+      .populate('orderedUser', 'firstName lastName')
       .populate({
         path: 'orderItem',
         populate: {
@@ -132,7 +131,7 @@ exports.orderListByStatus = async (req, res, next) => {
   console.log(filter)
   try {
     const orderList = await Order.find(filter)
-      .populate('user', 'firstName')
+      .populate('orderedUser', 'firstName')
       .populate({
         path: 'orderItem',
         populate: {
@@ -165,7 +164,7 @@ exports.update = async (req, res, next) => {
       { new: true },
     )
       .select('-__v')
-      .populate('user', 'firstName address email')
+      .populate('orderedUser', 'firstName address email')
       .populate({
         path: 'orderItem',
         populate: {
@@ -201,13 +200,13 @@ exports.update = async (req, res, next) => {
         console.log(productUpdated, 'productUpdated')
       }
     }
-    if (order.user.email) {
+    if (order.orderedUser.email) {
       if (req.body.status === 'cancelled') {
         mailService({
           type: 'order-confirmation',
           subject: 'Order Cancellation',
           message: 'We are sorry. Your order is cancelled 😢😒',
-          email: order.user.email,
+          email: order.orderedUser.email,
           order_id: order._id,
         })
         return res.status(httpStatus.OK).json({ order })
@@ -216,7 +215,7 @@ exports.update = async (req, res, next) => {
           type: 'order-confirmation',
           subject: 'Order Shipped',
           message: 'Your order is on the way. Get ready🥳',
-          email: order.user.email,
+          email: order.orderedUser.email,
           order_id: order._id,
         })
         return res.status(httpStatus.OK).json({ order })
@@ -226,7 +225,7 @@ exports.update = async (req, res, next) => {
           subject: 'Order Delivered',
           message:
             'Your order is delivered. Enjoy it and give us your valuable feedback',
-          email: order.user.email,
+          email: order.orderedUser.email,
           order_id: order._id,
         })
         return res.status(httpStatus.OK).json({ order })
@@ -235,7 +234,7 @@ exports.update = async (req, res, next) => {
           type: 'order-confirmation',
           subject: 'Order Accepted',
           message: 'Your order is processing. Be ready to enjoy',
-          email: order.user.email,
+          email: order.orderedUser.email,
           order_id: order._id,
         })
         return res.status(httpStatus.OK).json({ order })
@@ -250,10 +249,10 @@ exports.viewuserorder = async (req, res, next) => {
   try {
     console.log((req.user, 'lll'))
     const userOrder = await Order.find({
-      user: req.user.customerID,
+      orderedUser: req.user.customerID,
     })
       .select('-__v')
-      .populate('user', 'firstName address')
+      .populate('orderedUser', 'firstName address')
       .populate({
         path: 'orderItem',
         populate: {
@@ -279,7 +278,7 @@ exports.viewAOwnOrder = async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id)
       .select('-__v')
-      .populate('user', 'firstName address')
+      .populate('orderedUser', 'firstName address')
       .populate('city', 'city price')
       .populate({
         path: 'orderItem',
@@ -297,8 +296,9 @@ exports.viewAOwnOrder = async (req, res, next) => {
       throw Error('Orders not found!!')
     }
     if (order) {
-      console.log(order.user._id.toString(), req.user.customerID)
-      if (order.user._id.toString() === req.user.customerID) {
+      console.log(order.orderedUser._id.toString(), req.user.customerID)
+      if (order.orderedUser._id.toString() === req.user.customerID) {
+        console.log(order)
         return res.status(httpStatus.OK).json({ order })
       } else {
         return res.status(httpStatus.UNAUTHORIZED).send('No data found')
@@ -313,7 +313,7 @@ exports.viewOrder = async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id)
       .select('-__v')
-      .populate('user', 'firstName address email phoneNumber')
+      .populate('orderedUser', 'firstName address email phoneNumber')
       .populate('city', 'city price')
       .populate({
         path: 'orderItem',
@@ -361,6 +361,15 @@ exports.delete = async (req, res, next) => {
     if (!order) {
       return res.status(httpStatus.NOT_FOUND).send('Order not found!!')
     }
+    return res.status(httpStatus.OK).json({ order })
+  } catch (error) {
+    next(error)
+  }
+}
+exports.remove = async (req, res, next) => {
+  try {
+    const order = await Order.findByIdAndRemove(req.params.id)
+    console.log(order)
     return res.status(httpStatus.OK).json({ order })
   } catch (error) {
     next(error)

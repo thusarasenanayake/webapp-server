@@ -65,7 +65,7 @@ exports.view = async (req, res, next) => {
 }
 
 exports.update = async (req, res, next) => {
-  console.log(req.body._id)
+  console.log(req.body)
   try {
     const city = await DeliveryArea.findById(req.body._id)
     console.log(city)

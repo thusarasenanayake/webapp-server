@@ -44,7 +44,7 @@ const orderSchema = mongoose.Schema({
   landmark: {
     type: String,
   },
-  user: {
+  orderedUser: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'customer',
     required: true,

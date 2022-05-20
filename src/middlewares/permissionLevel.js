@@ -3,7 +3,7 @@ const httpStatus = require('http-status')
 const Staff = require('../models/staff.model')
 
 async function permission(USER, res, ROLE) {
-  console.log(USER, ROLE, USER.isAdmin)
+  // console.log(USER, ROLE, USER.isAdmin)
   if (ROLE === USER.isAdmin) {
     const user = await Staff.findById(USER.userID)
     if (!user) {

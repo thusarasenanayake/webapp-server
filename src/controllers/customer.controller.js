@@ -39,29 +39,48 @@ exports.create = async (req, res, next) => {
 exports.update = async (req, res, next) => {
   console.log(req.user, req.body)
   try {
-    const cusEmailID = await Customer.findOne({ email: req.body.email }).select(
-      '_id',
-    )
-    const cusID = await Customer.findById(req.user.customerID).select('_id')
-    console.log(cusEmailID, cusID)
-    if (cusEmailID.toString() === cusID.toString()) {
-      const customer = await Customer.findByIdAndUpdate(
-        req.user.customerID,
-        {
-          firstName: req.body.firstName,
-          lastName: req.body.lastName,
-          phoneNumber: req.body.phoneNumber,
-          address: req.body.address,
-        },
-        { new: true },
-      )
-      if (!customer) {
-        return res.status(httpStatus.NOT_FOUND).send('User not found!!')
+    const user = await Customer.findById(req.user.customerID)
+    if (!user) {
+      return res.status(httpStatus.NOT_FOUND).send('User not found!!')
+    }
+    if (user) {
+      if (req.body.email === cusID.email) {
+        const customer = await Customer.findByIdAndUpdate(
+          req.user.customerID,
+          {
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            email: req.body.email,
+            phoneNumber: req.body.phoneNumber,
+            address: req.body.address,
+          },
+          { new: true },
+        )
+        if (customer) {
+          return res.status(httpStatus.OK).json({ customer, success: true })
+        }
       } else {
-        return res.status(httpStatus.OK).json({ customer, success: true })
+        const user = await Customer.findOne({
+          email: req.body.email,
+        })
+        if (!user) {
+          const customer = await Customer.findByIdAndUpdate(
+            req.user.customerID,
+            {
+              userName: req.body.userName,
+              firstName: req.body.firstName,
+              lastName: req.body.lastName,
+              email: req.body.email,
+              phoneNumber: req.body.phoneNumber,
+              address: req.body.address,
+            },
+            { new: true },
+          )
+          return res.status(httpStatus.OK).json({ customer, success: true })
+        } else {
+          return res.status(httpStatus.CONFLICT).send('User name already exist')
+        }
       }
-    } else {
-      return res.status(httpStatus.UNPROCESSABLE_ENTITY).send('Can not Process')
     }
   } catch (error) {
     next(error)
@@ -92,12 +111,10 @@ exports.reset = async (req, res, next) => {
     const user = await Customer.findById(req.user.customerID)
       .where('status')
       .equals('active')
-    console.log(user)
     if (!user) {
       return res.status(httpStatus.NOT_FOUND).send('User not found!!')
     }
     if (user && bcrypt.compareSync(req.body.current_password, user.password)) {
-      console.log('lo')
       const customer = await Customer.findByIdAndUpdate(
         req.user.customerID,
         {
@@ -117,15 +134,12 @@ exports.reset = async (req, res, next) => {
 }
 // customer data view from staff end
 exports.view = async (req, res, next) => {
-  console.log('ll')
   try {
     const id = req.params.id
-    console.log(id)
     const customer = await Customer.findById(id)
       .where('status')
       .equals('active')
       .select('firstName lastName email address phoneNumber')
-    console.log(customer)
     if (!customer) {
       throw Error('User not found!!')
     }

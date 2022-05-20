@@ -281,7 +281,7 @@ exports.customer = async (req, res, next) => {
     const orderedUsers = await Order.find({
       dateOrder: { $gte: startDateNew, $lte: endDateNew },
     })
-      .select('totalPrice user')
+      .select('totalPrice orderedUser')
       .where('status')
       .equals('delivered')
 
@@ -293,11 +293,13 @@ exports.customer = async (req, res, next) => {
     if (orderedUsers.length > 0) {
       customers = []
       for (let j = 0; j < customer.length; j++) {
-        // customers.push([{id:customer[j]._id.toString(),firstName:customer[j].firstName,lastName:customer[j].lastName}])
         count = 0
         price = 0
         for (let i = 0; i < orderedUsers.length; i++) {
-          if (customer[j]._id.toString() === orderedUsers[i].user.toString()) {
+          if (
+            customer[j]._id.toString() ===
+            orderedUsers[i].orderedUser.toString()
+          ) {
             count = count + 1
             price += orderedUsers[i].totalPrice
           }
