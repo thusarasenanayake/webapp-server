@@ -21,7 +21,6 @@ router.put(
   validate(customerValidation.delete),
   customerController.delete,
 )
-router.get('/', customerController.view)
 router.get('/list', customerController.list)
 router.get('/:id', customerController.view)
 router.get('/', customerController.self)

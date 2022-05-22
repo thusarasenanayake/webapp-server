@@ -12,10 +12,9 @@ const orderSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  orderNumber: {
-    type: Number,
-    // default: 0,
-  },
+  // orderNumber: {
+  //   type: Number,
+  // },
   city: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'deliveryArea',

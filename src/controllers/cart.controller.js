@@ -3,7 +3,7 @@ const Cart = require('../models/cart.model')
 const Product = require('../models/product.model')
 const Customer = require('../models/customer.model')
 
-exports.update = async (req, res, next) => {
+exports.add = async (req, res, next) => {
   try {
     const id = req.user.customerID
     const data = req.body
@@ -119,9 +119,11 @@ exports.delete = async (req, res, next) => {
     next(error)
   }
 }
-exports.updateQuantity = async (req, res, next) => {
+exports.update = async (req, res, next) => {
   try {
     const id = req.user.customerID
+    console.log(req.body)
+    console.log('ll')
     const cartDetails = await Cart.findOne({ customerID: id })
       .where('status')
       .equals('active')
@@ -195,7 +197,7 @@ exports.list = async (req, res, next) => {
     if (!cartList) {
       return res.status(httpStatus.UNAUTHORIZED).json({ cartList })
     }
-    console.log(cartList)
+    // console.log(cartList)
     const cartItem = cartList.cartItem
     cartItem.forEach(processCartList)
 

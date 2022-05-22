@@ -27,7 +27,7 @@ module.exports = {
       status: Joi.string().required(),
     }),
     params: Joi.object({
-      id: Joi.string().required,
+      id: Joi.string().required(),
     }),
   },
 }

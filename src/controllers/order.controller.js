@@ -7,8 +7,10 @@ const DeliveryLocations = require('../models/deliveryArea.model')
 const Customer = require('../models/customer.model')
 
 exports.create = async (req, res, next) => {
+  console.log(req.body)
   const data = req.body.orderData
   const user = req.user.customerID
+  let orderNumber = 0
   try {
     const userDetails = await Customer.findById(user)
     if (!userDetails) {
@@ -16,6 +18,7 @@ exports.create = async (req, res, next) => {
     }
 
     for (let i = 0; i < data.length; i++) {
+      console.log(data[i])
       const productStock = await Product.findById(data[i].productID)
         .where('inStock')
         .gte(data[i].quantity)
@@ -32,15 +35,31 @@ exports.create = async (req, res, next) => {
       req.body.data.city,
     ).select('price')
 
+    // const orderNum = await Order.find({})
+    //   .sort({ orderNumber: -1 })
+    //   .limit(1)
+    //   .select('orderNumber')
+    // if (orderNum.length === 0) {
+    //   orderNumber = 0
+    // } else {
+    //   orderNumber = orderNum[0].orderNumber
+    // }
+
     const orderItemIDs = Promise.all(
       req.body.orderData.map(async (orderItem) => {
         let itemCount = await Product.findById(orderItem.productID).populate(
           '_id',
         )
+        let stocks = itemCount.inStock - orderItem.quantity
+        if (stocks < 0) {
+          return res
+            .status(httpStatus.BAD_REQUEST)
+            .send('This order cannot create')
+        }
         await Product.findByIdAndUpdate(
           orderItem.productID,
           {
-            inStock: itemCount.inStock - orderItem.quantity,
+            inStock: stocks,
           },
           { new: true },
         )
@@ -53,10 +72,7 @@ exports.create = async (req, res, next) => {
       }),
     )
     const orderItemIDsResolved = await orderItemIDs
-    const orderNum = await Order.find({})
-      .sort({ orderNumber: -1 })
-      .limit(1)
-      .select('orderNumber')
+
     //calculating total price from backend database
     const total = await Promise.all(
       orderItemIDsResolved.map(async (index) => {
@@ -70,7 +86,7 @@ exports.create = async (req, res, next) => {
     const totalPrice = subTotalPrice + Number(deliveryFee.price)
     //saving orders
     let order = new Order({
-      orderNumber: orderNum[0].orderNumber + 1,
+      // orderNumber: orderNumber + 1,
       orderItem: orderItemIDsResolved,
       shippingAddress: req.body.data.shippingAddress,
       city: req.body.data.city,

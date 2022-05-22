@@ -2,6 +2,7 @@ const Product = require('../models/product.model')
 const Order = require('../models/order.model')
 const OrderItems = require('../models/order-Items.model')
 const DeliveryLocations = require('../models/deliveryArea.model')
+const Category = require('../models/category.model')
 const Customer = require('../models/customer.model')
 const httpStatus = require('http-status')
 const permission = require('../middlewares/permissionLevel')
@@ -259,7 +260,82 @@ exports.popularProducts = async (req, res, next) => {
     next(error)
   }
 }
+exports.order = async (req, res, next) => {
+  let products = []
+  let category = []
+  try {
+    const customer = await Customer.findById(req.params.id)
+    if (!customer) {
+      return res.status(httpStatus.NOT_FOUND).send('user not found')
+    }
+    const orderList = await Order.find({
+      $and: [
+        {
+          orderedUser: req.params.id,
+          status: 'delivered',
+        },
+      ],
+    })
+      .select('-__v')
+      .populate('orderedUser', 'firstName address')
+      .populate({
+        path: 'orderItem',
+        populate: {
+          path: 'product',
+          select: 'productName',
+          populate: { path: 'category_id', select: 'categoryName' },
+        },
+      })
+      .where('isActive')
+      .equals('true')
+      .select('-__v')
+      .sort({ dateOrder: -1 })
 
+    const productList = await Product.find()
+      .select('_id productName')
+      .where('status')
+      .equals('active')
+    const categoryList = await Category.find()
+      .select('_id categoryName')
+      .where('status')
+      .equals('active')
+    for (let k = 0; k < productList.length; k++) {
+      let qty = 0
+      for (let i = 0; i < orderList.length; i++) {
+        for (let j = 0; j < orderList[i].orderItem.length; j++) {
+          if (
+            orderList[i].orderItem[j].product._id.toString() ===
+            productList[k]._id.toString()
+          ) {
+            qty += orderList[i].orderItem[j].quantity
+          }
+        }
+      }
+      if (qty > 0) products.push([productList[k].productName, qty])
+    }
+    for (let k = 0; k < categoryList.length; k++) {
+      let qty = 0
+      for (let i = 0; i < orderList.length; i++) {
+        for (let j = 0; j < orderList[i].orderItem.length; j++) {
+          if (
+            orderList[i].orderItem[j].product.category_id._id.toString() ===
+            categoryList[k]._id.toString()
+          ) {
+            qty += 1
+          }
+        }
+      }
+      if (qty > 0) category.push([categoryList[k].categoryName, qty])
+    }
+
+    if (!orderList) {
+      throw Error('Orders not found!!')
+    }
+    return res.status(httpStatus.OK).json({ orderList, products, category })
+  } catch (error) {
+    next(error)
+  }
+}
 exports.customer = async (req, res, next) => {
   await permission(req.user, res, true) //admin
 

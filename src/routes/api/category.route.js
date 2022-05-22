@@ -13,6 +13,7 @@ router.put(
   validate(categoryValidation.update),
   categoryController.update,
 )
-router.delete('/:id', categoryController.remove)
 router.put('/delete/:id', categoryController.delete)
+router.delete('/:id', categoryController.remove)
+
 module.exports = router
