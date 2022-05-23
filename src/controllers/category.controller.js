@@ -3,14 +3,29 @@ const httpStatus = require('http-status')
 
 exports.create = async (req, res, next) => {
   console.log('category creating')
+  const filter = { categoryName: req.body.categoryName }
   try {
+    //check Existence categories
+    const checkExistence = await Category.find(filter)
+      .where('status')
+      .equals('active')
+      .select('categoryName')
+    if (checkExistence.length !== 0) {
+      return res.status(httpStatus.CONFLICT).send('Category exist')
+    }
+
+    //save new category
     const category = new Category({
       categoryName: req.body.categoryName,
       image: req.body.image,
-      // displayPrice: req.body.price,
     })
-    await category.save()
-    return res.status(httpStatus.CREATED).json({ category })
+    const newCategory = await category.save()
+
+    if (newCategory) {
+      return res.status(httpStatus.CREATED).json({ category })
+    } else {
+      return res.status(httpStatus.BAD_REQUEST).send('cannot create')
+    }
   } catch (error) {
     next(error)
   }
@@ -34,12 +49,15 @@ exports.view = async (req, res, next) => {
 
 exports.list = async (req, res, next) => {
   try {
-    const query = Category.find({})
+    const categories = await Category.find({})
       .where('status')
       .equals('active')
       .select('-__v')
-    const categories = await query.exec()
-    return res.status(httpStatus.OK).json({ categories })
+    if (categories.length !== 0) {
+      return res.status(httpStatus.OK).json({ categories })
+    } else {
+      return res.status(httpStatus.NOT_FOUND).send('No categories found')
+    }
   } catch (error) {
     next(error)
   }
@@ -65,7 +83,6 @@ exports.update = async (req, res, next) => {
   }
 }
 exports.delete = async (req, res, next) => {
-  const category = await Category.findById(req.params.id)
   try {
     const updatedCategory = await Category.findByIdAndUpdate(
       req.params.id,

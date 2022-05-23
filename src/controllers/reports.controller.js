@@ -200,10 +200,9 @@ exports.delivery = async (req, res, next) => {
 exports.popularProducts = async (req, res, next) => {
   await permission(req.user, res, true) //admin
 
-  let productNm = []
-  let productCount = []
   let productDetails = []
   let orderItem = []
+  //set date format
   const date = req.body.state
   let startDateNew = new Date(date[0].startDate)
   startDateNew.setHours(startDateNew.getHours() + 5)
@@ -217,6 +216,7 @@ exports.popularProducts = async (req, res, next) => {
   endDateNew.setMilliseconds(999)
   console.log(endDateNew, startDateNew)
   try {
+    //check orders on searched date
     const orderItems = await Order.find({
       dateOrder: { $gte: startDateNew, $lte: endDateNew },
     })
@@ -232,14 +232,16 @@ exports.popularProducts = async (req, res, next) => {
         orderItem.push(orderListArray)
       }
     }
+    //get product list
     const productList = await Product.find()
       .select('_id productName')
       .where('status')
       .equals('active')
     let count = 0
+
+    //calculate ordered count with product name by comparing product ids
     if (orderItem.length > 0) {
       for (let j = 0; j < productList.length; j++) {
-        productNm.push(productList[j].productName)
         count = 0
         for (let i = 0; i < orderItem.length; i++) {
           if (
@@ -249,7 +251,7 @@ exports.popularProducts = async (req, res, next) => {
             count = count + orderItem[i].quantity
           }
         }
-        productCount.push(count)
+        // creating array of popular product
         productDetails.push([productList[j].productName, count])
       }
     }
@@ -272,12 +274,11 @@ exports.order = async (req, res, next) => {
       $and: [
         {
           orderedUser: req.params.id,
+          isActive: true,
           status: 'delivered',
         },
       ],
     })
-      .select('-__v')
-      .populate('orderedUser', 'firstName address')
       .populate({
         path: 'orderItem',
         populate: {
@@ -286,19 +287,16 @@ exports.order = async (req, res, next) => {
           populate: { path: 'category_id', select: 'categoryName' },
         },
       })
-      .where('isActive')
-      .equals('true')
-      .select('-__v')
       .sort({ dateOrder: -1 })
 
-    const productList = await Product.find()
-      .select('_id productName')
-      .where('status')
-      .equals('active')
-    const categoryList = await Category.find()
-      .select('_id categoryName')
-      .where('status')
-      .equals('active')
+    const productList = await Product.find({ status: 'active' }).select(
+      '_id productName',
+    )
+    const categoryList = await Category.find({ status: 'active' }).select(
+      '_id categoryName',
+    )
+
+    //calculate most ordered products with quantity
     for (let k = 0; k < productList.length; k++) {
       let qty = 0
       for (let i = 0; i < orderList.length; i++) {
@@ -313,6 +311,8 @@ exports.order = async (req, res, next) => {
       }
       if (qty > 0) products.push([productList[k].productName, qty])
     }
+
+    //calculate most ordered category with quantity
     for (let k = 0; k < categoryList.length; k++) {
       let qty = 0
       for (let i = 0; i < orderList.length; i++) {
@@ -328,9 +328,6 @@ exports.order = async (req, res, next) => {
       if (qty > 0) category.push([categoryList[k].categoryName, qty])
     }
 
-    if (!orderList) {
-      throw Error('Orders not found!!')
-    }
     return res.status(httpStatus.OK).json({ orderList, products, category })
   } catch (error) {
     next(error)
@@ -340,8 +337,9 @@ exports.customer = async (req, res, next) => {
   await permission(req.user, res, true) //admin
 
   let customers = []
-  let orderCount = []
+  //set date format
   const date = req.body.state
+  console.log(date)
   let startDateNew = new Date(date[0].startDate)
   startDateNew.setHours(startDateNew.getHours() + 5)
   startDateNew.setMinutes(startDateNew.getMinutes() + 30)
@@ -352,32 +350,26 @@ exports.customer = async (req, res, next) => {
   endDateNew.setMinutes(endDateNew.getMinutes() + 29)
   endDateNew.setSeconds(59)
   endDateNew.setMilliseconds(999)
-  console.log(endDateNew, startDateNew)
   try {
-    const orderedUsers = await Order.find({
+    //check orders on searched date
+    const orders = await Order.find({
       dateOrder: { $gte: startDateNew, $lte: endDateNew },
-    })
-      .select('totalPrice orderedUser')
-      .where('status')
-      .equals('delivered')
+      status: 'delivered',
+    }).select('totalPrice orderedUser')
 
-    const customer = await Customer.find()
-      .select('_id firstName lastName')
-      .where('status')
-      .equals('active')
+    const customer = await Customer.find({
+      status: 'active',
+    }).select('_id firstName lastName')
+
     let count = 0
-    if (orderedUsers.length > 0) {
-      customers = []
+    if (orders.length > 0) {
       for (let j = 0; j < customer.length; j++) {
         count = 0
         price = 0
-        for (let i = 0; i < orderedUsers.length; i++) {
-          if (
-            customer[j]._id.toString() ===
-            orderedUsers[i].orderedUser.toString()
-          ) {
+        for (let i = 0; i < orders.length; i++) {
+          if (customer[j]._id.toString() === orders[i].orderedUser.toString()) {
             count = count + 1
-            price += orderedUsers[i].totalPrice
+            price += orders[i].totalPrice
           }
         }
         customers.push([
@@ -389,13 +381,61 @@ exports.customer = async (req, res, next) => {
             price: price,
           },
         ])
-        orderCount.push(count)
       }
     }
 
     // bubbleSort(orderCount, customers)
-    if (!orderedUsers || !customer)
+    if (!orders || !customer)
       return res.status(httpStatus.NOT_FOUND).send('No data found')
+    return res.status(httpStatus.OK).json(customers)
+  } catch (error) {
+    next(error)
+  }
+}
+
+exports.customersFavProducts = async (req, res, next) => {
+  await permission(req.user, res, true) //admin
+
+  let customers = []
+
+  try {
+    const customer = await Customer.find({
+      status: 'active',
+    }).select('_id firstName')
+
+    const products = await Product.find({
+      status: 'active',
+    }).select('_id productName')
+    const orders = await Order.find({
+      status: 'delivered',
+    })
+      .select('orderedUser orderItem')
+      .populate({ path: 'orderedUser', model: Customer, select: 'firstName' })
+      .populate({ path: 'orderItem', model: OrderItems })
+    let qty = 0
+
+    for (let i = 0; i < customer.length; i++) {
+      //pushing customer name to 2D array
+      customers.push([customer[i].firstName])
+      for (let k = 0; k < products.length; k++) {
+        qty = 0 //resetting qty
+        for (let l = 0; l < orders.length; l++) {
+          for (let j = 0; j < orders[l].orderItem.length; j++) {
+            //compare product id and user id
+            if (
+              products[k]._id.toString() ===
+                orders[i].orderItem[j].product.toString() &&
+              customer[i]._id.toString() ===
+                orders[l].orderedUser._id.toString()
+            ) {
+              qty += orders[i].orderItem[j].quantity
+            }
+          }
+        }
+        customers[i].push([products[k].productName, qty])
+      }
+    }
+
     return res.status(httpStatus.OK).json(customers)
   } catch (error) {
     next(error)
