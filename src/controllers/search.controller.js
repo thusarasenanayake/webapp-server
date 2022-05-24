@@ -42,8 +42,9 @@ exports.product = async (req, res, next) => {
       .where('status')
       .equals('active')
       .select('productName inStock price')
-    if (!products) {
-      throw Error('Product not found!!')
+    console.log('hi', products)
+    if (products.length === 0) {
+      return res.status(httpStatus.NOT_FOUND).send('not found')
     }
     return res.status(httpStatus.OK).json({ products })
   } catch (error) {
@@ -64,8 +65,9 @@ exports.location = async (req, res, next) => {
       .where('status')
       .ne('deleted')
       .select('city price status')
-    if (!cities) {
-      throw Error('Product not found!!')
+    console.log(cities)
+    if (cities.length === 0) {
+      return res.status(httpStatus.NOT_FOUND).send('not found')
     }
     return res.status(httpStatus.OK).json({ cities })
   } catch (error) {
@@ -129,21 +131,20 @@ exports.employee = async (req, res, next) => {
   }
 }
 exports.order = async (req, res, next) => {
-  const date = req.body.state
-
+  const date = req.body
+  console.log(date)
   try {
-    let startDateNew = new Date(date[0].startDate)
+    let startDateNew = new Date(req.body.startDate)
     startDateNew.setHours(startDateNew.getHours() + 5)
     startDateNew.setMinutes(startDateNew.getMinutes() + 30)
 
-    let endDateNew = new Date(date[0].endDate)
+    let endDateNew = new Date(req.body.endDate)
     endDateNew.setDate(endDateNew.getDate() + 1)
     endDateNew.setHours(endDateNew.getHours() + 5)
     endDateNew.setMinutes(endDateNew.getMinutes() + 29)
     endDateNew.setSeconds(59)
     endDateNew.setMilliseconds(999)
-
-    let filter = { dateOrder: { $gte: startDateNew, $lte: endDateNew } }
+    let filter = { isActive: 'true' }
 
     if (req.body.searchData !== undefined && req.body.searchData !== null) {
       filter.receiverName = {
@@ -151,23 +152,15 @@ exports.order = async (req, res, next) => {
         $options: 'i',
       }
     }
-    //const orderList = await Order.find({ dateOrder: { $gte: startDateNew, $lte: endDateNew }, receiverName: req.body.name })
-    const orderList = await Order.find(filter)
-      .populate('user', 'firstName lastName')
-      .populate({
-        path: 'orderItem',
-        populate: {
-          path: 'product',
-          select: 'productName',
-          populate: { path: 'category_id', select: 'categoryName' },
-        },
-      })
-      .where('isActive')
-      .equals('true')
-      .select('-__v')
-      .sort({ dateOrder: -1 })
 
-    if (!orderList)
+    if (req.body.startDate !== undefined && req.body.endDate !== null) {
+      filter.dateOrder = { $gte: startDateNew, $lte: endDateNew }
+    }
+    console.log(filter)
+    //const orderList = await Order.find({ dateOrder: { $gte: startDateNew, $lte: endDateNew }, receiverName: req.body.name })
+    const orderList = await Order.find(filter).sort({ dateOrder: -1 })
+    console.log(orderList.length)
+    if (orderList.length === 0)
       return res.status(httpStatus.NOT_FOUND).send('No data found')
     return res.status(httpStatus.OK).json({ orderList })
   } catch (error) {

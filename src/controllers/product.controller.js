@@ -68,6 +68,14 @@ exports.list = async (req, res, next) => {
 //update countStocks, instock status and price
 exports.update = async (req, res, next) => {
   try {
+    const checkProduct = await Product.findOne({
+      productName: req.body.productName,
+    }).select('_id')
+    if (checkProduct) {
+      if (checkProduct._id.toString() !== req.params.id) {
+        return res.status(httpStatus.CONFLICT).json('Already exits')
+      }
+    }
     const product = await Product.findByIdAndUpdate(
       req.params.id,
       {

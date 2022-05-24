@@ -9,4 +9,7 @@ router.post('/delivery', reportsController.delivery)
 router.post('/product', reportsController.popularProducts)
 router.post('/customer', reportsController.customer)
 router.get('/products', reportsController.customersFavProducts)
+router.post('/product/sold/:id', reportsController.ProductsWiseCustomers)
+router.get('/:id', reportsController.order)
+
 module.exports = router

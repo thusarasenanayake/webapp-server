@@ -64,8 +64,17 @@ exports.list = async (req, res, next) => {
 }
 
 exports.update = async (req, res, next) => {
-  const category = await Category.findById(req.params.id)
   try {
+    const category = await Category.findById(req.params.id)
+    if (!category) {
+      return res.status(httpStatus.NOT_FOUND).send('category not found')
+    }
+    const checkCategory = await Category.findOne({
+      categoryName: req.body.categoryName,
+    }).select('_id')
+    if (checkCategory._id.toString() !== req.params.id) {
+      return res.status(httpStatus.CONFLICT).send('exist')
+    }
     const updatedCategory = await Category.findByIdAndUpdate(
       req.params.id,
       {

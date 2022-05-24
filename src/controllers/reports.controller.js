@@ -441,3 +441,100 @@ exports.customersFavProducts = async (req, res, next) => {
     next(error)
   }
 }
+
+exports.ProductsWiseCustomers = async (req, res, next) => {
+  await permission(req.user, res, true) //admin
+  var today = new Date(new Date().setUTCHours(0, 0, 0, 0))
+  var todayNew = today.toISOString()
+  var lastDay = new Date(new Date().setUTCHours(0, 0, 0, 0))
+  lastDay.setDate(0) // 0 will result in the last day of the previous month
+  console.log(today)
+  let customers = []
+  //building a search query
+  let cusFilter = {
+    status: 'active',
+  }
+  let oFilter = {
+    status: 'delivered',
+  }
+  const name = req.body.searchData
+  const sDate = req.body.startDate
+  const eDate = req.body.endDate
+  if (name !== undefined && name !== null) {
+    cusFilter.firstName = {
+      $regex: '.*' + name + '.*',
+      $options: 'i',
+    }
+  }
+  console.log(sDate)
+  if (
+    sDate !== undefined &&
+    eDate !== undefined &&
+    sDate !== null &&
+    eDate !== null
+  ) {
+    console.log('hi')
+    oFilter.dateOrder = { $gte: sDate, $lte: eDate }
+  } else if (
+    sDate === undefined &&
+    eDate === undefined &&
+    sDate === null &&
+    eDate === null
+  ) {
+    console.log('hii', today)
+    oFilter.dateOrder = { $gte: lastDay, $lte: today }
+  } else {
+    if (eDate === null || eDate === undefined) {
+      console.log('lolo', today)
+      oFilter.dateOrder = { $lte: today, $gte: sDate }
+    }
+    if (eDate !== null || eDate !== undefined) {
+      console.log('lolo', today)
+      oFilter.dateOrder = { $lte: eDate, $gte: lastDay }
+    }
+  }
+  // else if (sDate === null || sDate === undefined) {
+  //   console.log(eDate)
+  //   oFilter.dateOrder = { $lte: eDate, $gte: lastDay }
+  // }
+  console.log(oFilter)
+  try {
+    const customer = await Customer.find(cusFilter).select('_id firstName')
+    const orders = await Order.find(oFilter)
+      .select('orderedUser orderItem')
+      .populate({ path: 'orderedUser', model: Customer, select: 'firstName' })
+      .populate({
+        path: 'orderItem',
+        model: OrderItems,
+        populate: { path: 'product', model: Product },
+      })
+
+    if (customer.length === 0) {
+      return res.status(httpStatus.NOT_FOUND).send('no orders found')
+    }
+    if (orders.length === 0) {
+      return res.status(httpStatus.NOT_FOUND).send('no orders found')
+    }
+    let qty = 0
+    for (let i = 0; i < customer.length; i++) {
+      //pushing customer name to 2D array
+      customers.push([customer[i].firstName])
+      qty = 0 //resetting qty
+      for (let l = 0; l < orders.length; l++) {
+        for (let j = 0; j < orders[l].orderItem.length; j++) {
+          //compare product id and user id
+          if (
+            req.params.id === orders[i].orderItem[j].product._id.toString() &&
+            customer[i]._id.toString() === orders[l].orderedUser._id.toString()
+          ) {
+            qty += orders[i].orderItem[j].quantity
+          }
+        }
+      }
+      customers[i].push(qty)
+    }
+    return res.status(httpStatus.OK).json(customers)
+  } catch (error) {
+    next(error)
+  }
+}
