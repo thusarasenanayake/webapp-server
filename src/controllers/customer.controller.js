@@ -188,6 +188,9 @@ exports.list = async (req, res, next) => {
       .equals('active')
       .select('-passwordHash -__v -createdAt -updatedAt')
     const customers = await query.exec()
+    if (customers.length === 0) {
+      return res.status(httpStatus.NOT_FOUND).send('no data found')
+    }
     return res.status(httpStatus.OK).json({ customers })
   } catch (error) {
     next(error)

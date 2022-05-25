@@ -76,7 +76,7 @@ exports.location = async (req, res, next) => {
 }
 exports.customer = async (req, res, next) => {
   try {
-    let filter = {}
+    let filter = { status: 'active' }
     const name = req.body.searchData
     if (name !== undefined && name !== null) {
       filter.firstName = {
@@ -90,12 +90,9 @@ exports.customer = async (req, res, next) => {
     }
     const customers = await Customer.find({
       $or: [{ firstName: filter.firstName }, { lastName: filter.lastName }],
-    })
-      .where('status')
-      .equals('active')
-      .select('firstName lastName email address phoneNumber')
-    if (!customers) {
-      throw Error('User not found!!')
+    }).select('firstName lastName email address phoneNumber')
+    if (customers.length === 0) {
+      return res.status(httpStatus.NOT_FOUND).send('No data found')
     }
     return res.status(httpStatus.OK).json({ customers })
   } catch (error) {
@@ -104,7 +101,7 @@ exports.customer = async (req, res, next) => {
 }
 exports.employee = async (req, res, next) => {
   try {
-    let filter = {}
+    let filter = { status: 'active', isAdmin: 'false' }
     const name = req.body.searchData
     if (name !== undefined && name !== null) {
       filter.firstName = {
@@ -118,6 +115,7 @@ exports.employee = async (req, res, next) => {
     }
     const employees = await Staff.find({
       $or: [{ firstName: filter.firstName }, { lastName: filter.lastName }],
+      $and: [{ status: filter.status }, { isAdmin: filter.isAdmin }],
     })
       .where('status')
       .equals('active')

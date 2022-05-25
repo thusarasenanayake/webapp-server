@@ -3,7 +3,7 @@ const Schema = mongoose.Schema
 
 const deliveryAreaSchema = new Schema(
   {
- city: {
+    city: {
       type: String,
       required: true,
     },
@@ -12,7 +12,7 @@ const deliveryAreaSchema = new Schema(
       default: 'active',
     },
     price: {
-      type: String,
+      type: Number,
       required: true,
     },
   },

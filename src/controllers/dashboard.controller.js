@@ -2,10 +2,8 @@ const Product = require('../models/product.model')
 const Order = require('../models/order.model')
 const OrderItems = require('../models/order-Items.model')
 const Category = require('../models/category.model')
-const DeliveryLocations = require('../models/deliveryArea.model')
 const Customer = require('../models/customer.model')
 const httpStatus = require('http-status')
-const { where } = require('../models/category.model')
 exports.dashboard = async (req, res, next) => {
   const filter = {}
   let data = {}
@@ -24,7 +22,7 @@ exports.dashboard = async (req, res, next) => {
       dateRegistered: { $gte: date, $lte: tomorrow },
     }).count()
     const totalCustomer = await Customer.find(filter).count()
-    const totalProducts = await Product.count()
+    const totalProducts = await Product.count({ status: 'active' })
     const totalCategories = await Category.count()
     const allTodayOrders = await Order.find({
       dateOrder: { $gte: date, $lte: tomorrow },

@@ -85,8 +85,6 @@ exports.income = async (req, res, next) => {
 }
 
 exports.productIncome = async (req, res, next) => {
-  await permission(req.user, res, true) //admin
-
   let products = []
   let orderItem = []
   const date = req.body.state
@@ -149,8 +147,6 @@ exports.productIncome = async (req, res, next) => {
 }
 
 exports.delivery = async (req, res, next) => {
-  await permission(req.user, res, true) //admin
-
   let cityName = []
   let cityDetails = []
   const date = req.body.state
@@ -198,8 +194,6 @@ exports.delivery = async (req, res, next) => {
 }
 
 exports.popularProducts = async (req, res, next) => {
-  await permission(req.user, res, true) //admin
-
   let productDetails = []
   let orderItem = []
   //set date format
@@ -334,8 +328,6 @@ exports.order = async (req, res, next) => {
   }
 }
 exports.customer = async (req, res, next) => {
-  await permission(req.user, res, true) //admin
-
   let customers = []
   //set date format
   const date = req.body.state
@@ -394,8 +386,6 @@ exports.customer = async (req, res, next) => {
 }
 
 exports.customersFavProducts = async (req, res, next) => {
-  await permission(req.user, res, true) //admin
-
   let customers = []
 
   try {
@@ -443,13 +433,12 @@ exports.customersFavProducts = async (req, res, next) => {
 }
 
 exports.ProductsWiseCustomers = async (req, res, next) => {
-  await permission(req.user, res, true) //admin
-  var today = new Date(new Date().setUTCHours(0, 0, 0, 0))
+  let customers = []
+  //setting date
+  var today = new Date(new Date().setUTCHours(23, 59, 59, 999))
   var todayNew = today.toISOString()
   var lastDay = new Date(new Date().setUTCHours(0, 0, 0, 0))
   lastDay.setDate(0) // 0 will result in the last day of the previous month
-  console.log(today)
-  let customers = []
   //building a search query
   let cusFilter = {
     status: 'active',
@@ -457,46 +446,40 @@ exports.ProductsWiseCustomers = async (req, res, next) => {
   let oFilter = {
     status: 'delivered',
   }
+  console.log(today)
+  console.log(lastDay)
   const name = req.body.searchData
-  const sDate = req.body.startDate
-  const eDate = req.body.endDate
+  const startDate = req.body.startDate
+  const endDate = req.body.endDate
+  var sDate = new Date(new Date(startDate).setUTCHours(24, 0, 0, 0))
+  var eDate = new Date(new Date(endDate).setUTCHours(47, 59, 59, 999))
   if (name !== undefined && name !== null) {
     cusFilter.firstName = {
       $regex: '.*' + name + '.*',
       $options: 'i',
     }
   }
-  console.log(sDate)
   if (
     sDate !== undefined &&
     eDate !== undefined &&
     sDate !== null &&
     eDate !== null
   ) {
-    console.log('hi')
     oFilter.dateOrder = { $gte: sDate, $lte: eDate }
-  } else if (
-    sDate === undefined &&
-    eDate === undefined &&
-    sDate === null &&
-    eDate === null
+  }
+  if (
+    (startDate === undefined && endDate === undefined) ||
+    (startDate === null && endDate === null)
   ) {
-    console.log('hii', today)
     oFilter.dateOrder = { $gte: lastDay, $lte: today }
   } else {
-    if (eDate === null || eDate === undefined) {
-      console.log('lolo', today)
+    if (endDate === null || endDate === undefined) {
       oFilter.dateOrder = { $lte: today, $gte: sDate }
     }
-    if (eDate !== null || eDate !== undefined) {
-      console.log('lolo', today)
+    if (startDate == null || startDate == undefined) {
       oFilter.dateOrder = { $lte: eDate, $gte: lastDay }
     }
   }
-  // else if (sDate === null || sDate === undefined) {
-  //   console.log(eDate)
-  //   oFilter.dateOrder = { $lte: eDate, $gte: lastDay }
-  // }
   console.log(oFilter)
   try {
     const customer = await Customer.find(cusFilter).select('_id firstName')
@@ -518,20 +501,22 @@ exports.ProductsWiseCustomers = async (req, res, next) => {
     let qty = 0
     for (let i = 0; i < customer.length; i++) {
       //pushing customer name to 2D array
+      let orderCount = 0
       customers.push([customer[i].firstName])
       qty = 0 //resetting qty
       for (let l = 0; l < orders.length; l++) {
         for (let j = 0; j < orders[l].orderItem.length; j++) {
           //compare product id and user id
           if (
-            req.params.id === orders[i].orderItem[j].product._id.toString() &&
+            req.params.id === orders[l].orderItem[j].product._id.toString() &&
             customer[i]._id.toString() === orders[l].orderedUser._id.toString()
           ) {
-            qty += orders[i].orderItem[j].quantity
+            qty += orders[l].orderItem[j].quantity
+            orderCount += 1
           }
         }
       }
-      customers[i].push(qty)
+      customers[i].push(qty, orderCount)
     }
     return res.status(httpStatus.OK).json(customers)
   } catch (error) {

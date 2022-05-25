@@ -84,6 +84,11 @@ exports.create = async (req, res, next) => {
     //merg array of total prices and get sum of all prices {=+orderitem*qty}[a+b+c]
     const subTotalPrice = total.reduce((a, b) => a + b, 0)
     const totalPrice = subTotalPrice + Number(deliveryFee.price)
+
+    let today = new Date()
+    today.setHours(today.getHours() + 5)
+    today.setMinutes(today.getMinutes() + 30)
+    console.log(today)
     //saving orders
     let order = new Order({
       // orderNumber: orderNumber + 1,
@@ -96,6 +101,7 @@ exports.create = async (req, res, next) => {
       subTotalPrice: subTotalPrice,
       totalPrice: totalPrice,
       receiverName: req.body.data.receiverName,
+      dateOrder: today,
     })
 
     order = await order.save()

@@ -8,9 +8,7 @@ exports.create = async (req, res, next) => {
   try {
     const user = await Staff.findOne({ userName: req.body.userName })
     if (user) {
-      return res
-        .status(httpStatus.UNPROCESSABLE_ENTITY)
-        .send('userName  Already exists!!')
+      return res.status(httpStatus.CONFLICT).send('userName  Already exists!!')
     } else {
       const user = new Staff({
         firstName: req.body.firstName,
@@ -168,6 +166,7 @@ exports.login = async (req, res, next) => {
 
 exports.listEmployee = async (req, res, next) => {
   const filter = {}
+  console.log('ll')
   try {
     const query = Staff.find(filter)
       .where('status')
@@ -177,6 +176,9 @@ exports.listEmployee = async (req, res, next) => {
       .select('-passwordHash -__v -createdAt -updatedAt')
     console.log(query)
     const users = await query.exec()
+    if (users.length === 0) {
+      return res.status(httpStatus.NOT_FOUND).send('No data found')
+    }
     return res.status(httpStatus.OK).json({ users })
   } catch (error) {
     next(error)
