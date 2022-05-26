@@ -1,4 +1,5 @@
 const Category = require('../models/category.model')
+const Product = require('../models/product.model')
 const httpStatus = require('http-status')
 
 exports.create = async (req, res, next) => {
@@ -96,6 +97,20 @@ exports.update = async (req, res, next) => {
 }
 exports.delete = async (req, res, next) => {
   try {
+    const products = await Product.find({ category_id: req.params.id })
+      .where('status')
+      .equals('active')
+      .select('_id')
+
+    for (let i = 0; i < products.length; i++) {
+      const product = await Product.findByIdAndUpdate(
+        products[i]._id.toString(),
+        {
+          status: 'deleted',
+        },
+        { new: true },
+      )
+    }
     const updatedCategory = await Category.findByIdAndUpdate(
       req.params.id,
       { status: 'deleted' },

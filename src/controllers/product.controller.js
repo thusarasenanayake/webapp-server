@@ -59,6 +59,10 @@ exports.list = async (req, res, next) => {
       .populate({ path: 'category_id', model: Category })
       .sort('inStock')
     const products = await query.exec()
+    console.log(products)
+    if (products.length === 0) {
+      return res.status(httpStatus.NOT_FOUND).send('no products found')
+    }
     return res.status(httpStatus.OK).json({ products })
   } catch (error) {
     next(error)

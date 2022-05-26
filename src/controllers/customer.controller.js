@@ -45,7 +45,9 @@ exports.update = async (req, res, next) => {
       return res.status(httpStatus.NOT_FOUND).send('User not found!!')
     }
     if (user) {
-      if (req.body.email === cusID.email) {
+      console.log('user')
+
+      if (req.body.email === user.email) {
         const customer = await Customer.findByIdAndUpdate(
           req.user.customerID,
           {

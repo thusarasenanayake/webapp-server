@@ -7,8 +7,9 @@ const httpStatus = require('http-status')
 exports.dashboard = async (req, res, next) => {
   const filter = {}
   let data = {}
-  const date = new Date().toDateString()
-  const tomorrow = new Date(new Date(date).getTime() + 60 * 60 * 24 * 1000)
+  var tomorrow = new Date(new Date().setUTCHours(47, 59, 59, 999))
+  var date = new Date(new Date().setUTCHours(24, 0, 0, 0))
+  console.log(date, tomorrow)
   try {
     const todayOrderCount = await Order.find({
       dateOrder: { $gte: date, $lte: tomorrow },
@@ -42,6 +43,7 @@ exports.dashboard = async (req, res, next) => {
       totalProducts: totalProducts,
       totalCustomer: totalCustomer,
     }
+    console.log(totalIncome)
     if (data) return res.status(httpStatus.OK).json({ data })
     return res.status(httpStatus.NOT_FOUND).send('No data found')
   } catch (error) {

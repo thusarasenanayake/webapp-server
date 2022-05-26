@@ -16,12 +16,12 @@ const corsOptions = {
 
 app.use(cors(corsOptions)) // Use this after the variable declaration
 
-app.use(morgan('combined')) //logger
+app.use(morgan('tiny')) //logger
 app.use(express.json({ limit: '50mb' }))
 app.use(express.urlencoded({ limit: '50mb', extended: true }))
 
 app.use(function (req, res, next) {
-  console.log('Logged')
+  // console.log('Logged')
   next()
 })
 

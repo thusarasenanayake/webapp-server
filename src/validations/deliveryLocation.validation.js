@@ -17,14 +17,12 @@ module.exports = {
       city: Joi.string()
         .required()
         .regex(/^[a-zA-Z]+$/),
-      price: Joi.string()
-        .required()
-        .regex(/^[0-9]+$/),
+      price: Joi.number().required(),
       status: Joi.string()
         .required()
         .regex(/^[a-zA-Z]+$/),
-      createdAt: Joi.date().required(),
-      updatedAt: Joi.date().required(),
+      createdAt: Joi.date(),
+      updatedAt: Joi.date(),
     }),
   },
   delete: {
