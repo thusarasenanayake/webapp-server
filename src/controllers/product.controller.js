@@ -6,7 +6,6 @@ const permission = require('../middlewares/permissionLevel')
 exports.create = async (req, res, next) => {
   await permission(req.user, res, true) //admin
 
-  console.log(req.body)
   try {
     const categoryID = req.body.category_id
     const category = await Category.findById(categoryID)
@@ -59,7 +58,6 @@ exports.list = async (req, res, next) => {
       .populate({ path: 'category_id', model: Category })
       .sort('inStock')
     const products = await query.exec()
-    console.log(products)
     if (products.length === 0) {
       return res.status(httpStatus.NOT_FOUND).send('no products found')
     }
@@ -99,8 +97,6 @@ exports.update = async (req, res, next) => {
   }
 }
 exports.delete = async (req, res, next) => {
-  console.log(req.params.id, 'hi')
-  console.log(req.user)
   await permission(req.user, res, true)
 
   try {

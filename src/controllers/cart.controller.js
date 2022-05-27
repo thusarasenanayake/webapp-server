@@ -9,29 +9,37 @@ exports.add = async (req, res, next) => {
     const data = req.body
 
     let isMatched = false
+
+    //get customer and products details
     const customer = await Customer.findById(id)
-    console.log(customer)
     const product = await Product.findById(data.productID).select('inStock')
 
+    //check availability
     if (product.inStock < data.quantity) {
       return res.status(httpStatus.FORBIDDEN).send('product not available')
     }
+    //check customer
     if (!customer) {
       return res.status(httpStatus.UNAUTHORIZED).send('User not found!!')
     }
+
+    //find cart
     const cartDetails = await Cart.findOne({ customerID: id })
       .where('status')
       .equals('active')
     var cartItem = []
-    console.log(cartDetails, 'cartDetails')
     async function checkCart() {
       await cartDetails.cartItem.map((item, index) => {
+        //check item already exit or not
         if (item.item.toString() === data.productID) {
           isMatched = true
         }
       })
     }
+    //check prev item of cart
     checkCart()
+
+    //add cart item
     if (cartDetails.cartItem.length === 0) {
       cartItem.push({ item: req.body.productID, quantity: req.body.quantity })
     } else {
@@ -48,6 +56,7 @@ exports.add = async (req, res, next) => {
     cartDetails.cartItem.map((item, index) =>
       cartItem.push({ item: item.item, quantity: item.quantity }),
     )
+    //save cart
     const updatedCart = await Cart.findByIdAndUpdate(
       cartDetails._id,
       {
@@ -122,8 +131,6 @@ exports.delete = async (req, res, next) => {
 exports.update = async (req, res, next) => {
   try {
     const id = req.user.customerID
-    console.log(req.body)
-    console.log('ll')
     const cartDetails = await Cart.findOne({ customerID: id })
       .where('status')
       .equals('active')
@@ -197,7 +204,6 @@ exports.list = async (req, res, next) => {
     if (!cartList) {
       return res.status(httpStatus.UNAUTHORIZED).json({ cartList })
     }
-    // console.log(cartList)
     const cartItem = cartList.cartItem
     cartItem.forEach(processCartList)
 

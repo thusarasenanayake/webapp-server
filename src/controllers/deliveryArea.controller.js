@@ -1,6 +1,8 @@
 const DeliveryArea = require('../models/deliveryArea.model')
 const Order = require('../models/order.model')
 const httpStatus = require('http-status')
+
+//add new city
 exports.create = async (req, res, next) => {
   try {
     console.log(req.body)
@@ -24,6 +26,7 @@ exports.create = async (req, res, next) => {
   }
 }
 
+//view list
 exports.list = async (req, res, next) => {
   try {
     const cities = await DeliveryArea.find({})
@@ -35,6 +38,8 @@ exports.list = async (req, res, next) => {
     next(error)
   }
 }
+
+//for frontend purpose
 exports.location = async (req, res, next) => {
   try {
     const cities = await DeliveryArea.find({ status: 'active' }).select('-__v')
@@ -46,6 +51,8 @@ exports.location = async (req, res, next) => {
     next(error)
   }
 }
+
+// view locations
 exports.view = async (req, res, next) => {
   try {
     const { id } = req.params
@@ -62,6 +69,7 @@ exports.view = async (req, res, next) => {
   }
 }
 
+//update city info
 exports.update = async (req, res, next) => {
   console.log(req.body)
   try {
@@ -94,6 +102,7 @@ exports.update = async (req, res, next) => {
   }
 }
 
+//delete city
 exports.delete = async (req, res, next) => {
   try {
     const city = await DeliveryArea.findById(req.params.id)

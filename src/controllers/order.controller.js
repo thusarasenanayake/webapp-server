@@ -35,15 +35,18 @@ exports.create = async (req, res, next) => {
       req.body.data.city,
     ).select('price')
 
-    // const orderNum = await Order.find({})
-    //   .sort({ orderNumber: -1 })
-    //   .limit(1)
-    //   .select('orderNumber')
-    // if (orderNum.length === 0) {
-    //   orderNumber = 0
-    // } else {
-    //   orderNumber = orderNum[0].orderNumber
-    // }
+    const orderNum = await Order.find({})
+      .sort({ orderNumber: -1 })
+      .limit(1)
+      .select('orderNumber')
+
+    if (orderNum.length === 0) {
+      console.log('hi')
+      orderNumber = 0
+    } else {
+      console.log('bye');
+      orderNumber = orderNum[0].orderNumber
+    }
 
     const orderItemIDs = Promise.all(
       req.body.orderData.map(async (orderItem) => {
@@ -91,7 +94,7 @@ exports.create = async (req, res, next) => {
     console.log(today)
     //saving orders
     let order = new Order({
-      // orderNumber: orderNumber + 1,
+      orderNumber: orderNumber + 1,
       orderItem: orderItemIDsResolved,
       shippingAddress: req.body.data.shippingAddress,
       city: req.body.data.city,

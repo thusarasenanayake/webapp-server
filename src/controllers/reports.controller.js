@@ -7,32 +7,8 @@ const Customer = require('../models/customer.model')
 const httpStatus = require('http-status')
 const permission = require('../middlewares/permissionLevel')
 
-function bubbleSort(arr1, arr2) {
-  var i, j
-  var len = arr1.length
-  var isSwapped = false
-  for (i = 0; i < len; i++) {
-    isSwapped = false
-    for (j = 0; j < len; j++) {
-      if (arr1[j] < arr1[j + 1]) {
-        var temp1 = arr1[j]
-        var temp2 = arr2[j]
-        arr1[j] = arr1[j + 1]
-        arr1[j + 1] = temp1
-        arr2[j] = arr2[j + 1]
-        arr2[j + 1] = temp2
-        isSwapped = true
-      }
-    }
-    if (!isSwapped) {
-      break
-    }
-  }
-  console.log(arr1, arr2)
-}
-
-exports.income = async (req, res, next) => {
-  await permission(req.user, res, true) //admin
+exports.totalIncome = async (req, res, next) => {
+  // await permission(req.user, res, true) //admin
 
   const date = req.body.state
   let startDateNew = new Date(date[0].startDate)
@@ -77,7 +53,10 @@ exports.income = async (req, res, next) => {
         totalIncome.push([dates[i].toDateString(), price])
       }
     }
-    if (!orders) return res.status(httpStatus.NOT_FOUND).send('No data found')
+    console.log(orders, totalIncome)
+    if (totalIncome.length === 0) {
+      return res.status(httpStatus.NOT_FOUND).send('No data found')
+    }
     return res.status(httpStatus.OK).json({ totalIncome })
   } catch (error) {
     next(error)
@@ -139,14 +118,15 @@ exports.productIncome = async (req, res, next) => {
         }
       }
     }
-    if (!orders) return res.status(httpStatus.NOT_FOUND).send('No data found')
+    if (products.length === 0)
+      return res.status(httpStatus.NOT_FOUND).send('No data found')
     return res.status(httpStatus.OK).json({ products })
   } catch (error) {
     next(error)
   }
 }
 
-exports.delivery = async (req, res, next) => {
+exports.locationReport = async (req, res, next) => {
   let cityName = []
   let cityDetails = []
   const date = req.body.state
@@ -185,7 +165,8 @@ exports.delivery = async (req, res, next) => {
       }
     }
     // bubbleSort(cityCount, cityName)
-    if (!orderedCity || !cities)
+    console.log(cityDetails)
+    if (cityDetails.length === 0)
       return res.status(httpStatus.NOT_FOUND).send('No data found')
     return res.status(httpStatus.OK).json(cityDetails)
   } catch (error) {
@@ -208,7 +189,7 @@ exports.popularProducts = async (req, res, next) => {
   endDateNew.setMinutes(endDateNew.getMinutes() + 29)
   endDateNew.setSeconds(59)
   endDateNew.setMilliseconds(999)
-  console.log(endDateNew, startDateNew)
+
   try {
     //check orders on searched date
     const orderItems = await Order.find({
@@ -217,12 +198,13 @@ exports.popularProducts = async (req, res, next) => {
       .select('orderItem')
       .where('status')
       .equals('delivered')
+
     for (let j = 0; j < orderItems.length; j++) {
       for (let i = 0; i < orderItems[j].orderItem.length; i++) {
         let id = orderItems[j].orderItem[i].toString()
         let orderListArray = await OrderItems.findById(id)
           .populate('product', 'productName')
-          .select('quantity dateOrder')
+          .select('quantity')
         orderItem.push(orderListArray)
       }
     }
@@ -327,11 +309,10 @@ exports.order = async (req, res, next) => {
     next(error)
   }
 }
-exports.customer = async (req, res, next) => {
+exports.customerLoyalty = async (req, res, next) => {
   let customers = []
   //set date format
   const date = req.body.state
-  console.log(date)
   let startDateNew = new Date(date[0].startDate)
   startDateNew.setHours(startDateNew.getHours() + 5)
   startDateNew.setMinutes(startDateNew.getMinutes() + 30)
@@ -376,8 +357,7 @@ exports.customer = async (req, res, next) => {
       }
     }
 
-    // bubbleSort(orderCount, customers)
-    if (!orders || !customer)
+    if (customers.length === 0)
       return res.status(httpStatus.NOT_FOUND).send('No data found')
     return res.status(httpStatus.OK).json(customers)
   } catch (error) {
