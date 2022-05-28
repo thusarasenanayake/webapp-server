@@ -1,4 +1,5 @@
 const Staff = require('../models/staff.model')
+const Customer = require('../models/customer.model')
 const httpStatus = require('http-status')
 const { mailService } = require('../services/mail')
 const bcrypt = require('bcryptjs')
@@ -214,6 +215,31 @@ exports.resetPassword = async (req, res, next) => {
   }
 }
 
+exports.Promotion = async (req, res, next) => {
+  try {
+    const promotion = req.body
+
+    const user = await Customer.find({
+      status: 'active',
+    }).select('email')
+    if (!user) {
+      return res.status(httpStatus.NOT_FOUND).send('A user is not available ')
+    }
+    console.log(user[0])
+    for (let i = 0; i < user.length; i++) {
+      mailService({
+        type: 'promotion',
+        subject: 'Promotions',
+        email: user[i].email,
+        promotion: promotion,
+      })
+    }
+
+    return res.status(httpStatus.OK).json('OK')
+  } catch (error) {
+    next(error)
+  }
+}
 //emp list
 exports.listEmployee = async (req, res, next) => {
   const filter = {}

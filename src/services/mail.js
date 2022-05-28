@@ -1,11 +1,10 @@
-var nodemailer = require("nodemailer");
-const config = require("../config");
+var nodemailer = require('nodemailer')
+const config = require('../config')
 
 exports.mailService = async (props) => {
-	let content = ``;
-
-	if (props.type === "password-reset") {
-		content=`
+  let content = ``
+  if (props.type === 'password-reset') {
+    content = `
 	<!DOCTYPE html>
 	<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
 	</head>
@@ -72,9 +71,9 @@ exports.mailService = async (props) => {
 	</table>
 	</body>
 	</html>
-	`;
-	}	else if(props.type === 'order-confirmation'){
-		content = `
+	`
+  } else if (props.type === 'order-confirmation') {
+    content = `
 		<body class="clean-body u_body" style="margin: 0;padding: 0;-webkit-text-size-adjust: 100%;background-color: #e7e7e7;color: #000000">
 		<!--[if IE]><div class="ie-container"><![endif]-->
 		<!--[if mso]><div class="mso-container"><![endif]-->
@@ -161,26 +160,27 @@ exports.mailService = async (props) => {
 		</tbody>
 	  </table>
 	  </body>
-		`;
-	}
-	
+		`
+  } else if (props.type === 'promotion') {
+    content = props.promotion.promotion
+  }
 
-	let transporter = nodemailer.createTransport({
-		service: "gmail",
-		auth: {
-			user: config.sendEmailAddress,
-			pass: config.sendEmailPassword,
-		},
-	});
+  let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: config.sendEmailAddress,
+      pass: config.sendEmailPassword,
+    },
+  })
 
-	if (props.email) {
-		let info = await transporter.sendMail({
-			from: `"Ruwan Bakehouse Online Ordering System" <${config.sendEmailAddress}>`,
-			to: props.email,
-			subject: props.subject,
-			html: content,
-		});
+  if (props.email) {
+    let info = await transporter.sendMail({
+      from: `"Ruwan Bakehouse Online Ordering System" <${config.sendEmailAddress}>`,
+      to: props.email,
+      subject: props.subject,
+      html: content,
+    })
 
-		console.log("Message sent: %s", info.messageId);
-	}
-};
+    console.log('Message sent: %s', info.messageId)
+  }
+}
