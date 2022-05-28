@@ -5,10 +5,14 @@ const { validate } = require('express-validation')
 const searchValidation = require('../../validations/search.validation')
 const searchController = require('../../controllers/search.controller')
 
-router.post('/category', searchController.category)
+router.post(
+  '/category',
+  validate(searchValidation.search),
+  searchController.category,
+)
 router.post(
   '/product',
-  validate(searchValidation.search),
+  // validate(searchValidation.search),
   searchController.product,
 )
 router.post(

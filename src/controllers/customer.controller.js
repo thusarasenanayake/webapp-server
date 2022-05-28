@@ -9,9 +9,7 @@ exports.create = async (req, res, next) => {
   try {
     const customer = await Customer.findOne({ email: req.body.email })
     if (customer) {
-      return res
-        .status(httpStatus.UNPROCESSABLE_ENTITY)
-        .send('Email  Already exists!!')
+      return res.status(httpStatus.CONFLICT).send('Email  Already exists!!')
     } else {
       const customer = new Customer({
         firstName: req.body.firstName,

@@ -402,7 +402,7 @@ exports.customersFavProducts = async (req, res, next) => {
             }
           }
         }
-        customers[i].push([products[k].productName, qty])
+        if (qty > 0) customers[i].push([products[k].productName, qty])
       }
     }
 
@@ -496,9 +496,16 @@ exports.ProductsWiseCustomers = async (req, res, next) => {
           }
         }
       }
-      customers[i].push(qty, orderCount)
+      console.log(customers[i][0])
+
+      if (qty > 0) {
+        customers[i].push(qty, orderCount)
+      } else {
+        customers.pop()
+      }
     }
-    return res.status(httpStatus.OK).json(customers)
+    console.log(customers)
+    if (customers !== null) return res.status(httpStatus.OK).json(customers)
   } catch (error) {
     next(error)
   }

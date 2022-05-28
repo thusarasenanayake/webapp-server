@@ -1,9 +1,11 @@
 const Staff = require('../models/staff.model')
 const httpStatus = require('http-status')
-// const { query } = require('express')
+const { mailService } = require('../services/mail')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+var generator = require('generate-password')
 
+//add emp
 exports.create = async (req, res, next) => {
   try {
     const user = await Staff.findOne({ userName: req.body.userName })
@@ -15,6 +17,7 @@ exports.create = async (req, res, next) => {
         lastName: req.body.lastName,
         userName: req.body.userName,
         password: bcrypt.hashSync(req.body.password, 10),
+        email: req.body.email,
       })
       await user.save()
       return res.status(httpStatus.CREATED).json({ user, success: true })
@@ -23,6 +26,8 @@ exports.create = async (req, res, next) => {
     next(error)
   }
 }
+
+//update acc
 exports.update = async (req, res, next) => {
   try {
     const user = await Staff.findById(req.user.userID)
@@ -65,6 +70,7 @@ exports.update = async (req, res, next) => {
   }
 }
 
+//change password
 exports.reset = async (req, res, next) => {
   try {
     const user = await Staff.findById(req.user.userID)
@@ -90,6 +96,7 @@ exports.reset = async (req, res, next) => {
   }
 }
 
+//delete emp
 exports.delete = async (req, res, next) => {
   try {
     const user = await Staff.findByIdAndUpdate(
@@ -122,6 +129,7 @@ exports.view = async (req, res, next) => {
     next(error)
   }
 }
+//view own acc details
 exports.profile = async (req, res, next) => {
   try {
     const user = await Staff.findById(req.user.userID)
@@ -136,7 +144,9 @@ exports.profile = async (req, res, next) => {
     next(error)
   }
 }
+//login
 exports.login = async (req, res, next) => {
+  console.log('ll')
   try {
     const user = await Staff.findOne({ userName: req.body.userName })
       .where('status')
@@ -164,9 +174,49 @@ exports.login = async (req, res, next) => {
   }
 }
 
+//password reset
+exports.resetPassword = async (req, res, next) => {
+  try {
+    const { userName, email } = req.body
+
+    const user = await Staff.findOne({
+      userName: userName,
+      email: email,
+      status: 'active',
+    }).select('_id')
+    if (!user) {
+      return res
+        .status(httpStatus.NOT_FOUND)
+        .send('A user is not available with given credentials')
+    }
+
+    var password = generator.generate({
+      length: 6,
+      numbers: true,
+    })
+    const newPassword = password
+    const update = await bcrypt.hash(password, 10)
+
+    await Staff.findByIdAndUpdate(user._id, {
+      password: update,
+    })
+
+    mailService({
+      type: 'password-reset',
+      subject: 'Login Credential',
+      email: req.body.email,
+      password: newPassword,
+    })
+
+    return res.status(httpStatus.OK).json('OK')
+  } catch (error) {
+    next(error)
+  }
+}
+
+//emp list
 exports.listEmployee = async (req, res, next) => {
   const filter = {}
-  console.log('ll')
   try {
     const query = Staff.find(filter)
       .where('status')
@@ -174,7 +224,6 @@ exports.listEmployee = async (req, res, next) => {
       .where('isAdmin')
       .equals(false)
       .select('-passwordHash -__v -createdAt -updatedAt')
-    console.log(query)
     const users = await query.exec()
     if (users.length === 0) {
       return res.status(httpStatus.NOT_FOUND).send('No data found')

@@ -14,11 +14,13 @@ module.exports = {
       userName: Joi.string().required(),
       password: Joi.string().required(),
       Password2: Joi.ref('password'),
+      email: Joi.string().required().email(),
     }),
   },
+
   update: {
     body: Joi.object({
-      _id: Joi.forbidden(),
+      _id: Joi.string(),
       firstName: Joi.string()
         .required()
         .regex(/^[a-zA-Z]+$/),
@@ -26,20 +28,20 @@ module.exports = {
         .required()
         .regex(/^[a-zA-Z]+$/),
       userName: Joi.string().required(),
-      password: Joi.string().required(),
-      Password2: Joi.string(),
     }),
   },
+
   login: {
     body: Joi.object({
       userName: Joi.string().required(),
       password: Joi.string().required(),
     }),
   },
+
   reset: {
     body: Joi.object({
       current_password: Joi.string().required(),
-      Password2: Joi.string(),
+      Password2: Joi.ref('password'),
       password: Joi.string().required(),
     }),
   },

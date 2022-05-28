@@ -48,12 +48,38 @@ exports.view = async (req, res, next) => {
   }
 }
 
+exports.listForFrontEnd = async (req, res, next) => {
+  try {
+    let categories = []
+    const categoryData = await Category.find({})
+      .where('status')
+      .equals('active')
+      .select('-__v')
+    for (let i = 0; i < categoryData.length; i++) {
+      const product = await Product.find({
+        category_id: categoryData[i]._id,
+        status: 'active',
+      })
+      if (product.length > 0) {
+        categories.push(categoryData[i])
+      }
+    }
+    if (categories.length !== 0) {
+      return res.status(httpStatus.OK).json({ categories })
+    } else {
+      return res.status(httpStatus.NOT_FOUND).send('No categories found')
+    }
+  } catch (error) {
+    next(error)
+  }
+}
 exports.list = async (req, res, next) => {
   try {
     const categories = await Category.find({})
       .where('status')
       .equals('active')
-      .select('-__v')
+      .select('_id categoryName')
+
     if (categories.length !== 0) {
       return res.status(httpStatus.OK).json({ categories })
     } else {

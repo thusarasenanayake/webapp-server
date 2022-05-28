@@ -16,6 +16,7 @@ exports.category = async (req, res, next) => {
         $options: 'i',
       }
     }
+    console.log(filter)
     const categories = await Category.find(filter)
       .where('status')
       .equals('active')
@@ -30,13 +31,18 @@ exports.category = async (req, res, next) => {
 }
 exports.product = async (req, res, next) => {
   try {
+    console.log(req.body)
     let filter = {}
     const name = req.body.searchData
+    const category = req.body.category
     if (name !== undefined && name !== null) {
       filter.productName = {
         $regex: '.*' + name + '.*',
         $options: 'i',
       }
+    }
+    if (category !== undefined && category !== null && category !== 'all') {
+      filter.category_id = category
     }
     const products = await Product.find(filter)
       .where('status')
