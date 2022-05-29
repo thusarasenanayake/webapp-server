@@ -140,13 +140,19 @@ exports.locationReport = async (req, res, next) => {
   endDateNew.setMinutes(endDateNew.getMinutes() + 29)
   endDateNew.setSeconds(59)
   endDateNew.setMilliseconds(999)
+  console.log('ll')
   try {
+    console.log(startDateNew, endDateNew)
     const orderedCity = await Order.find({
       dateOrder: { $gte: startDateNew, $lte: endDateNew },
     })
       .select('city')
       .where('status')
       .equals('delivered')
+    console.log(orderedCity)
+    if (orderedCity.length === 0) {
+      return res.status(httpStatus.NOT_FOUND).send('No data found')
+    }
     const cities = await DeliveryLocations.find()
       .select('_id city')
       .where('status')
@@ -231,7 +237,7 @@ exports.popularProducts = async (req, res, next) => {
         productDetails.push([productList[j].productName, count])
       }
     }
-    if (!orderItems)
+    if (orderItems.length === 0)
       return res.status(httpStatus.NOT_FOUND).send('No data found')
     return res.status(httpStatus.OK).json(productDetails)
   } catch (error) {
@@ -345,15 +351,17 @@ exports.customerLoyalty = async (req, res, next) => {
             price += orders[i].totalPrice
           }
         }
-        customers.push([
-          {
-            id: customer[j]._id.toString(),
-            firstName: customer[j].firstName,
-            lastName: customer[j].lastName,
-            count: count,
-            price: price,
-          },
-        ])
+        if (count > 0) {
+          customers.push([
+            {
+              id: customer[j]._id.toString(),
+              firstName: customer[j].firstName,
+              lastName: customer[j].lastName,
+              count: count,
+              price: price,
+            },
+          ])
+        }
       }
     }
 
@@ -462,6 +470,7 @@ exports.ProductsWiseCustomers = async (req, res, next) => {
   }
   console.log(oFilter)
   try {
+    let cus = []
     const customer = await Customer.find(cusFilter).select('_id firstName')
     const orders = await Order.find(oFilter)
       .select('orderedUser orderItem')
@@ -497,15 +506,80 @@ exports.ProductsWiseCustomers = async (req, res, next) => {
         }
       }
       console.log(customers[i][0])
+      console.log(customers, 'hi')
 
-      if (qty > 0) {
-        customers[i].push(qty, orderCount)
-      } else {
-        customers.pop()
-      }
+      customers[i].push(qty, orderCount)
     }
     console.log(customers)
     if (customers !== null) return res.status(httpStatus.OK).json(customers)
+  } catch (error) {
+    next(error)
+  }
+}
+
+exports.productByLocation = async (req, res, next) => {
+  try {
+    const cities = await DeliveryLocations.find({})
+      .where('status')
+      .ne('deleted')
+      .select('city')
+
+    let citiesList = []
+
+    for (let k = 0; k < cities.length; k++) {
+      citiesList.push({ id: cities[k].id, city: cities[k].city, products: [] })
+    }
+
+    var orders = await Order.find({})
+      .where('status')
+      .equals('delivered')
+      .select('city orderItem')
+      .populate({
+        path: 'orderItem',
+        select: '-__v',
+        populate: {
+          path: 'product',
+          select: 'productName',
+        },
+      })
+
+    for (let i = 0; i < orders.length; i++) {
+      const order = orders[i]
+
+      const cityIndex = citiesList.findIndex((city) => {
+        return city.id === order.city.toString()
+      })
+
+      const productsList = citiesList[cityIndex].products
+
+      for (let j = 0; j < order.orderItem.length; j++) {
+        const item = order.orderItem[j]
+
+        if (productsList.length === 0) {
+          citiesList[cityIndex].products.push({
+            id: item.product.id,
+            productName: item.product.productName,
+            quantity: item.quantity,
+          })
+        } else {
+          const productIndex = productsList.findIndex((product) => {
+            return product.id === item.product.id
+          })
+          if (productIndex > -1) {
+            citiesList[cityIndex].products[productIndex].quantity +=
+              item.quantity
+          } else {
+            citiesList[cityIndex].products.push({
+              id: item.product.id,
+              productName: item.product.productName,
+              quantity: item.quantity,
+            })
+          }
+        }
+      }
+    }
+
+    return res.status(httpStatus.OK).json({ citiesList })
   } catch (error) {
     next(error)
   }

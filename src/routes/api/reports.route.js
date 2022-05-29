@@ -8,6 +8,7 @@ router.post('/delivery', reportsController.locationReport)
 router.post('/income', reportsController.totalIncome)
 router.post('/productIncome', reportsController.productIncome)
 router.post('/product', reportsController.popularProducts)
+router.post('/productbylocation', reportsController.productByLocation)
 router.get('/products', reportsController.customersFavProducts) //not used
 router.post('/product/sold/:id', reportsController.ProductsWiseCustomers) //product page
 router.get('/:id', reportsController.order)

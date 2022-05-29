@@ -1,6 +1,7 @@
 const Customer = require('../models/customer.model')
 const Order = require('../models/order.model')
 const Cart = require('../models/cart.model')
+const { mailService } = require('../services/mail')
 const httpStatus = require('http-status')
 const { query } = require('express')
 const bcrypt = require('bcryptjs')
@@ -11,7 +12,21 @@ exports.create = async (req, res, next) => {
     if (customer) {
       return res.status(httpStatus.CONFLICT).send('Email  Already exists!!')
     } else {
+      const prevCus = await Customer.find({})
+        .sort({ cusNumber: -1 })
+        .limit(1)
+        .select('cusNumber')
+      console.log(prevCus)
+      if (prevCus.length === 0) {
+        console.log('hi')
+        cusNumber = 0
+      } else {
+        console.log('bye')
+        cusNumber = prevCus[0].cusNumber
+      }
+      console.log(cusNumber)
       const customer = new Customer({
+        cusNumber: cusNumber + 1,
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         email: req.body.email,
@@ -196,7 +211,29 @@ exports.list = async (req, res, next) => {
     next(error)
   }
 }
+exports.promotion = async (req, res, next) => {
+  try {
+    const promotion = req.body.promotion
+    const id = req.params.id
+    console.log(req.params)
+    console.log(promotion)
+    const user = await Customer.findById(id).select('email')
+    if (!user) {
+      return res.status(httpStatus.NOT_FOUND).send('A user is not available ')
+    }
+    console.log(user.email)
+    mailService({
+      type: 'single-promotion',
+      subject: 'Promotions',
+      email: user.email,
+      promotion: promotion,
+    })
 
+    return res.status(httpStatus.OK).json('OK')
+  } catch (error) {
+    next(error)
+  }
+}
 exports.delete = async (req, res, next) => {
   try {
     const customer = await Customer.findByIdAndUpdate(

@@ -96,7 +96,7 @@ exports.customer = async (req, res, next) => {
     }
     const customers = await Customer.find({
       $or: [{ firstName: filter.firstName }, { lastName: filter.lastName }],
-    }).select('firstName lastName email address phoneNumber')
+    }).select('cusNumber firstName lastName email address phoneNumber')
     if (customers.length === 0) {
       return res.status(httpStatus.NOT_FOUND).send('No data found')
     }
@@ -125,7 +125,7 @@ exports.employee = async (req, res, next) => {
     })
       .where('status')
       .equals('active')
-      .select('firstName lastName userName  isAdmin')
+      .select('usrName firstName lastName userName  isAdmin')
     if (!employees) {
       throw Error('User not found!!')
     }

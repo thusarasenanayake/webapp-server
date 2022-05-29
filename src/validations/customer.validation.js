@@ -4,6 +4,7 @@ module.exports = {
   create: {
     body: Joi.object({
       _id: Joi.forbidden(),
+      // cusNumber: Joi.number(),
       firstName: Joi.string()
         .required()
         .regex(/^[a-zA-Z]+$/),

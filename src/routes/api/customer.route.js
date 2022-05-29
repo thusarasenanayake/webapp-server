@@ -22,6 +22,7 @@ router.put(
   customerController.delete,
 )
 router.get('/list', customerController.list)
+router.post('/:id', customerController.promotion)
 router.get('/:id', customerController.view)
 router.get('/', customerController.self)
 

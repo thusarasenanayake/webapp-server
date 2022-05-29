@@ -3,6 +3,7 @@ const config = require('../config')
 
 exports.mailService = async (props) => {
   let content = ``
+  console.log(props)
   if (props.type === 'password-reset') {
     content = `
 	<!DOCTYPE html>
@@ -163,6 +164,8 @@ exports.mailService = async (props) => {
 		`
   } else if (props.type === 'promotion') {
     content = props.promotion.promotion
+  } else if (props.type === 'single-promotion') {
+    content = props.promotion
   }
 
   let transporter = nodemailer.createTransport({

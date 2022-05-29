@@ -9,11 +9,33 @@ var generator = require('generate-password')
 //add emp
 exports.create = async (req, res, next) => {
   try {
-    const user = await Staff.findOne({ userName: req.body.userName })
+    const user = await Staff.findOne({
+      userName: req.body.userName,
+    })
+    const userEmail = await Staff.findOne({
+      email: req.body.email,
+    })
+    console.log(user, userEmail)
+    if (userEmail) {
+      return res.status(httpStatus.CONFLICT).send('userName  Already exists!!')
+    }
     if (user) {
       return res.status(httpStatus.CONFLICT).send('userName  Already exists!!')
     } else {
+      const prevUsr = await Staff.find({})
+        .sort({ usrNumber: -1 })
+        .limit(1)
+        .select('usrNumber')
+      if (prevUsr.length === 0) {
+        console.log('hi')
+        usrNumber = 0
+      } else {
+        console.log('bye')
+        usrNumber = prevUsr[0].usrNumber
+      }
+      console.log(usrNumber)
       const user = new Staff({
+        usrNumber: usrNumber + 1,
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         userName: req.body.userName,

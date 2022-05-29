@@ -44,7 +44,7 @@ exports.create = async (req, res, next) => {
       console.log('hi')
       orderNumber = 0
     } else {
-      console.log('bye');
+      console.log('bye')
       orderNumber = orderNum[0].orderNumber
     }
 
@@ -131,6 +131,7 @@ exports.allOrders = async (req, res, next) => {
   try {
     const orderList = await Order.find(filter)
       .populate('orderedUser', 'firstName lastName')
+      .populate('city', 'price')
       .populate({
         path: 'orderItem',
         populate: {
@@ -321,9 +322,7 @@ exports.viewAOwnOrder = async (req, res, next) => {
       throw Error('Orders not found!!')
     }
     if (order) {
-      console.log(order.orderedUser._id.toString(), req.user.customerID)
       if (order.orderedUser._id.toString() === req.user.customerID) {
-        console.log(order)
         return res.status(httpStatus.OK).json({ order })
       } else {
         return res.status(httpStatus.UNAUTHORIZED).send('No data found')
@@ -352,7 +351,6 @@ exports.viewOrder = async (req, res, next) => {
       .equals('true')
       .select('-__v')
       .sort({ dateOrder: -1 })
-    console.log(order)
     if (!order) {
       throw Error('Orders not found!!')
     }

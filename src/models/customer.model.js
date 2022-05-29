@@ -3,6 +3,10 @@ const Schema = mongoose.Schema
 
 const customerSchema = new Schema(
   {
+    cusNumber: {
+      type: Number,
+      required: true,
+    },
     firstName: {
       type: String,
       required: true,
@@ -36,7 +40,7 @@ const customerSchema = new Schema(
       default: Date.now,
     },
   },
-  { timestamps: true },
+  // { timestamps: true },
 )
 customerSchema.virtual('id').get(function () {
   return this._id.toHexString()
